@@ -3,100 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies Official - Global Player</title>
+    <title>H.Movies - World Cinema</title>
     <style>
-        body { margin:0; font-family:'Segoe UI', Arial, sans-serif; background:#050505; color:white; }
-        .header { padding:20px; background:linear-gradient(to bottom, #111, #000); text-align:center; border-bottom:2px solid #e50914; position:sticky; top:0; z-index:1000; }
-        .logo { color:#e50914; font-size:32px; font-weight:bold; letter-spacing:2px; text-shadow: 2px 2px 5px black; }
-        .search-box { width:85%; max-width:700px; padding:15px; margin-top:15px; border-radius:30px; border:1px solid #444; background:#1a1a1a; color:white; font-size:16px; outline:none; transition:0.3s; }
-        .search-box:focus { border-color:#e50914; box-shadow: 0 0 15px rgba(229, 9, 20, 0.4); }
-        .container { display:flex; flex-wrap:wrap; padding:20px; gap:20px; justify-content:center; }
-        .movie-card { width:180px; background:#111; border-radius:12px; overflow:hidden; border:1px solid #222; transition:0.4s; position:relative; }
-        .movie-card:hover { transform:scale(1.05); border-color:#e50914; z-index:10; }
-        .movie-card img { width:100%; height:270px; object-fit:cover; display:block; background:#222; }
-        .movie-info { padding:12px; text-align:center; }
-        .movie-title { font-size:14px; font-weight:bold; height:36px; overflow:hidden; margin-bottom:10px; color:#eee; }
-        .btn-group { display:flex; flex-direction:column; gap:5px; }
-        .btn { padding:10px; text-decoration:none; color:white; font-size:12px; font-weight:bold; border-radius:6px; text-align:center; transition:0.2s; }
-        .btn-watch { background:#e50914; }
-        .btn-watch:hover { background:#ff0a16; }
-        .btn-dl { background:#333; border:1px solid #e50914; }
-        .btn-dl:hover { background:#444; }
-        #msg { text-align:center; padding:40px; color:#888; font-size:18px; }
+        body { margin:0; font-family:sans-serif; background:#050505; color:white; text-align:center; }
+        .nav { padding:20px; background:#111; border-bottom:3px solid red; position:sticky; top:0; z-index:100; }
+        .logo { color:red; font-size:28px; font-weight:bold; }
+        .search { width:85%; padding:15px; margin-top:15px; border-radius:30px; border:none; background:#222; color:white; outline:none; }
+        .row { display:flex; flex-wrap:wrap; padding:20px; gap:15px; justify-content:center; }
+        .card { width:160px; background:#111; border-radius:12px; overflow:hidden; border:1px solid #333; }
+        .card img { width:100%; height:240px; object-fit:cover; background:#222; }
+        .title { font-size:13px; padding:10px; height:35px; overflow:hidden; font-weight:bold; }
+        .btn { display:block; background:red; color:white; text-decoration:none; padding:10px; font-weight:bold; font-size:12px; margin:5px; border-radius:5px; }
+        .btn-dl { background:white; color:black; }
     </style>
 </head>
 <body>
-
-    <div class="header">
+    <div class="nav">
         <div class="logo">H.MOVIES</div>
-        <input type="text" id="query" class="search-box" placeholder="Search Worldwide Movies (e.g. Avatar, Pathaan, Jawan)...">
+        <input type="text" id="s" class="search" placeholder="Search Bollywood or Hollywood (e.g. Jawan, Avatar)...">
     </div>
-
-    <div id="msg">Type a movie name and hit Enter...</div>
-    <div id="result" class="container"></div>
+    <div id="out" class="row">Type movie name and press Enter...</div>
 
     <script>
-        const TMDB_KEY = '86202476b76a0841f22e848981329124';
-        const OMDB_KEY = '61f2249e';
-
-        async function searchMovies(q) {
-            const container = document.getElementById('result');
-            const msg = document.getElementById('msg');
-            msg.innerHTML = 'Searching Global Databases...';
-            container.innerHTML = '';
-
-            try {
-                // Fetching from TMDB for Posters and Global Data
-                const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}`);
-                const data = await res.json();
-
-                if (!data.results || data.results.length === 0) {
-                    msg.innerHTML = 'No movies found. Try another name.';
-                    return;
+        // Multiple Backup Keys and Proxy Logic
+        function load(q) {
+            var box = document.getElementById('out');
+            box.innerHTML = 'Connecting to Global Servers...';
+            var query = q ? q : "2024";
+            
+            // Using OMDb for better connectivity in Pakistan
+            fetch("https://www.omdbapi.com/?s=" + encodeURIComponent(query) + "&apikey=61f2249e")
+            .then(res => res.json())
+            .then(data => {
+                box.innerHTML = '';
+                if(data.Search) {
+                    data.Search.forEach(m => {
+                        if(m.Poster !== 'N/A') {
+                            // Watch & Download Servers
+                            var watch = "https://vidsrc.me/embed/movie/" + m.imdbID;
+                            var dl = "https://www.2embed.cc/embed/" + m.imdbID;
+                            
+                            var item = document.createElement('div');
+                            item.className = 'card';
+                            item.innerHTML = `
+                                <img src="${m.Poster}">
+                                <div class="title">${m.Title}</div>
+                                <a href="${watch}" target="_blank" class="btn">WATCH ONLINE</a>
+                                <a href="${dl}" target="_blank" class="btn btn-dl">DOWNLOAD</a>
+                            `;
+                            box.appendChild(item);
+                        }
+                    });
+                } else {
+                    box.innerHTML = 'Movie not found. Try another spelling.';
                 }
-
-                msg.innerHTML = `Showing results for: ${q}`;
-                data.results.forEach(movie => {
-                    if (movie.poster_path) {
-                        const poster = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-                        // Proxy poster to avoid blocks in Pakistan
-                        const proxyPoster = `https://images.weserv.nl/?url=${poster}`;
-                        
-                        // Watch Link (Stream)
-                        const watchUrl = `https://vidsrc.me/embed/movie?tmdb=${movie.id}`;
-                        // Download Link (Multi-server)
-                        const dlUrl = `https://www.2embed.cc/embed/${movie.id}`;
-
-                        const card = document.createElement('div');
-                        card.className = 'movie-card';
-                        card.innerHTML = `
-                            <img src="${proxyPoster}" onerror="this.src='https://via.placeholder.com/500x750?text=No+Poster'">
-                            <div class="movie-info">
-                                <div class="movie-title">${movie.title}</div>
-                                <div class="btn-group">
-                                    <a href="${watchUrl}" target="_blank" class="btn btn-watch">WATCH ONLINE</a>
-                                    <a href="${dlUrl}" target="_blank" class="btn btn-dl">DOWNLOAD LINK</a>
-                                </div>
-                            </div>
-                        `;
-                        container.appendChild(card);
-                    }
-                });
-            } catch (error) {
-                msg.innerHTML = 'Server Busy. Please check internet connection.';
-            }
+            })
+            .catch(e => { box.innerHTML = 'Server Busy. Use Search Box.'; });
         }
 
-        document.getElementById('query').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                searchMovies(this.value.trim());
-            }
-        });
-
-        // Load trending on start
-        window.onload = () => {
-            searchMovies('2024'); 
+        document.getElementById('s').onkeypress = function(e) {
+            if(e.key === 'Enter') load(this.value.trim());
         };
+        window.onload = function() { load('Action'); };
     </script>
 </body>
 </html>
