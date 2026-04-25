@@ -50,13 +50,18 @@
                 const id = s.externals.imdb;
                 if(id) {
                     const img = s.image ? s.image.medium : 'https://via.placeholder.com/210x295';
+                    // In links ko change kiya gaya hai stable servers ke liye
+                    const s1 = "https://vidsrc.me/embed/movie?imdb=" + id;
+                    const s2 = "https://vidsrc.xyz/embed/movie/" + id;
+                    const d1 = "https://dl.vidsrc.xyz/movie/" + id;
+
                     d.innerHTML += `
                         <div class="movie-card">
                             <img src="${img}">
                             <div class="movie-title">${s.name}</div>
-                            <a href="https://vidsrc.me/embed/movie?imdb=${id}" target="_blank" class="btn watch">Watch S1</a>
-                            <a href="https://vidsrc.xyz/embed/movie/${id}" target="_blank" class="btn server2">Watch S2</a>
-                            <a href="https://dl.vidsrc.xyz/movie/${id}" target="_blank" class="btn down">Download</a>
+                            <a href="${s1}" target="_blank" rel="noopener noreferrer" class="btn watch">Watch S1</a>
+                            <a href="${s2}" target="_blank" rel="noopener noreferrer" class="btn server2">Watch S2</a>
+                            <a href="${d1}" target="_blank" rel="noopener noreferrer" class="btn down">Download</a>
                         </div>`;
                 }
             });
