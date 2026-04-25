@@ -6,12 +6,17 @@
 <title>H.Movies Pro</title>
 
 <style>
-body{margin:0;background:#000;color:#fff;font-family:sans-serif}
+body{
+margin:0;
+background:#0b0b0f;
+color:#fff;
+font-family:sans-serif;
+}
 
+/* HEADER */
 .header{
 display:flex;
 justify-content:space-between;
-align-items:center;
 padding:15px;
 background:#111;
 position:sticky;
@@ -19,205 +24,47 @@ top:0;
 z-index:100;
 }
 
-.logo{color:#00ff88;font-size:22px;font-weight:bold}
-
-.search{
-padding:10px;
-border:none;
-border-radius:8px;
-background:#222;
-color:#fff;
+.logo{
+color:#00ff88;
+font-size:22px;
+font-weight:bold;
 }
 
+.search{
+background:#1c1c25;
+border:none;
+padding:10px;
+color:#fff;
+border-radius:8px;
+}
+
+/* BANNER */
 .banner{
-position:relative;
-height:60vh;
+height:65vh;
 background-size:cover;
 background-position:center;
 display:flex;
 align-items:flex-end;
 padding:20px;
+position:relative;
 }
 
 .banner h1{
-font-size:30px;
+font-size:32px;
+text-shadow:0 0 10px #000;
 }
 
-.row{
-padding:10px;
-}
-
-.row h2{
-margin-left:10px;
-}
-
-.movies{
-display:flex;
-overflow-x:auto;
-gap:10px;
-padding:10px;
-}
-
-.card{
-min-width:140px;
+.banner button{
+background:#00ff88;
+border:none;
+padding:10px 20px;
+border-radius:8px;
+font-weight:bold;
 cursor:pointer;
 }
 
-.card img{
-width:100%;
-border-radius:10px;
-}
-
-.player{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:black;
-z-index:9999;
-display:flex;
-justify-content:center;
-align-items:center;
-}
-
-.player iframe{
-width:100%;
-height:100%;
-}
-
-.close{
+/* ARROWS */
+.arrow{
 position:absolute;
-top:10px;
-right:10px;
-background:red;
-color:#fff;
-border:none;
-padding:10px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="header">
-<div class="logo">H.MOVIES PRO</div>
-<input id="search" class="search" placeholder="Search...">
-</div>
-
-<div id="banner" class="banner"></div>
-
-<div class="row">
-<h2>🔥 Trending</h2>
-<div id="trending" class="movies"></div>
-</div>
-
-<div class="row">
-<h2>🎬 Movies</h2>
-<div id="movies" class="movies"></div>
-</div>
-
-<div class="row">
-<h2>📺 Series</h2>
-<div id="series" class="movies"></div>
-</div>
-
-<script>
-
-const API="https://api.themoviedb.org/3";
-const KEY="f409489a42d61f514484fa959f76fec7";
-
-// FETCH FUNCTION
-async function get(url){
-  let res=await fetch(url);
-  return res.json();
-}
-
-// BANNER
-async function loadBanner(){
-  let data=await get(`${API}/trending/movie/week?api_key=${KEY}`);
-  let m=data.results[0];
-
-  document.getElementById("banner").style.backgroundImage=
-  `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
-
-  document.getElementById("banner").innerHTML=
-  `<h1>${m.title}</h1>
-   <button onclick="play('${m.title} trailer')">▶ Play</button>`;
-}
-
-// ROW LOAD
-async function loadRow(url,container){
-  let data=await get(url);
-
-  let box=document.getElementById(container);
-
-  data.results.forEach(m=>{
-    if(!m.poster_path) return;
-
-    let title=m.title || m.name;
-
-    let div=document.createElement("div");
-    div.className="card";
-
-    div.innerHTML=`
-    <img src="https://image.tmdb.org/t/p/w300${m.poster_path}">
-    `;
-
-    div.onclick=()=>play(title+" trailer");
-
-    box.appendChild(div);
-  });
-}
-
-// PLAYER
-function play(q){
-  let p=document.createElement("div");
-  p.className="player";
-
-  p.innerHTML=`
-  <button class="close" onclick="this.parentElement.remove()">X</button>
-  <iframe src="https://www.youtube.com/embed?listType=search&list=${q}" allowfullscreen></iframe>
-  `;
-
-  document.body.appendChild(p);
-}
-
-// SEARCH
-document.getElementById("search").addEventListener("input", async e=>{
-  let q=e.target.value;
-
-  if(q.length<2) return;
-
-  let data=await get(`${API}/search/multi?api_key=${KEY}&query=${q}`);
-
-  document.getElementById("trending").innerHTML="";
-  document.getElementById("movies").innerHTML="";
-  document.getElementById("series").innerHTML="";
-
-  data.results.forEach(m=>{
-    if(!m.poster_path) return;
-
-    let title=m.title || m.name;
-
-    let div=document.createElement("div");
-    div.className="card";
-
-    div.innerHTML=`<img src="https://image.tmdb.org/t/p/w300${m.poster_path}">`;
-    div.onclick=()=>play(title+" trailer");
-
-    document.getElementById("movies").appendChild(div);
-  });
-});
-
-// INIT
-loadBanner();
-
-loadRow(`${API}/trending/all/week?api_key=${KEY}`,"trending");
-loadRow(`${API}/discover/movie?api_key=${KEY}`,"movies");
-loadRow(`${API}/discover/tv?api_key=${KEY}`,"series");
-
-</script>
-
-</body>
-</html>
+top:50%;
+font-size:30
