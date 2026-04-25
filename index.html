@@ -3,70 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - Official</title>
+    <title>H.Movies - Pro Edition</title>
     <style>
-        body { margin: 0; font-family: sans-serif; background: #080808; color: white; padding-bottom: 80px; }
-        .top-nav { padding: 15px; background: #141414; position: sticky; top: 0; z-index: 1000; text-align: center; }
-        .logo { color: #e50914; font-weight: bold; font-size: 26px; margin-bottom: 10px; }
-        .search-box { background: #2a2d36; border: none; padding: 12px; border-radius: 8px; color: white; width: 90%; outline: none; margin-bottom: 10px; }
-        .category-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; justify-content: center; }
-        .cat-btn { background: #1a1a1a; padding: 8px 15px; border-radius: 5px; border: 1px solid #333; color: white; font-size: 13px; cursor: pointer; }
-        .movie-row { display: flex; flex-wrap: wrap; padding: 10px; gap: 10px; justify-content: space-around; }
-        .movie-card { width: 45%; background: #141414; border-radius: 10px; margin-bottom: 15px; overflow: hidden; border: 1px solid #222; }
-        .movie-card img { width: 100%; height: 200px; object-fit: cover; }
-        .movie-title { font-size: 11px; padding: 8px; text-align: center; font-weight: bold; height: 35px; overflow: hidden; }
-        .btn { display: block; padding: 10px; border-radius: 5px; text-align: center; text-decoration: none; font-weight: bold; color: white; margin: 5px; font-size: 11px; background: #e50914; }
+        body { margin:0; font-family:sans-serif; background:#050505; color:white; padding-bottom:80px; }
+        .nav { padding:15px; background:#111; position:sticky; top:0; z-index:100; text-align:center; border-bottom:2px solid #e50914; }
+        .logo { color:#e50914; font-weight:bold; font-size:26px; margin-bottom:10px; }
+        .search { background:#222; border:1px solid #444; padding:12px; border-radius:5px; color:white; width:85%; outline:none; }
+        .row { display:flex; flex-wrap:wrap; padding:10px; gap:10px; justify-content:space-around; }
+        .card { width:45%; background:#111; border-radius:8px; margin-bottom:15px; overflow:hidden; border:1px solid #222; }
+        .card img { width:100%; height:220px; object-fit:cover; }
+        .title { font-size:11px; padding:8px; text-align:center; font-weight:bold; height:35px; overflow:hidden; }
+        .btn { display:block; padding:10px; border-radius:4px; text-decoration:none; font-weight:bold; color:white; margin:5px; font-size:11px; text-align:center; background:#e50914; }
     </style>
 </head>
 <body>
 
-<div class="top-nav">
+<div class="nav">
     <div class="logo">H.Movies</div>
-    <input type="text" id="searchInput" class="search-box" placeholder="Search Movies...">
-    <div class="category-bar">
-        <div class="cat-btn" onclick="loadMovies('action')">Action</div>
-        <div class="cat-btn" onclick="loadMovies('animation')">Animations</div>
-        <div class="cat-btn" onclick="loadMovies('cartoon')">Cartoons</div>
-    </div>
+    <input type="text" id="s" class="search" placeholder="Search MovieBox Style...">
 </div>
 
-<div id="movie-display" class="movie-row"></div>
+<div id="out" class="row"></div>
 
 <script>
-    function loadMovies(q = 'movie') {
-        const d = document.getElementById('movie-display');
-        d.innerHTML = '<p style="padding:20px; width:100%; text-align:center;">Loading...</p>';
-        
-        fetch('https://api.tvmaze.com/search/shows?q=' + q)
-        .then(r => r.json())
-        .then(data => {
-            d.innerHTML = '';
-            data.forEach(i => {
-                const s = i.show;
-                const id = s.externals.imdb;
-                if(id) {
-                    const img = s.image ? s.image.medium : 'https://via.placeholder.com/210x295';
-                    // Sabse stable links
-                    const s1 = "https://vidsrc.me/embed/movie?imdb=" + id;
-                    const d1 = "https://dl.vidsrc.xyz/movie/" + id;
+    // Ye API Key professional movie data (TMDB) se connect karti hai
+    const k = '86202476b76a0841f22e848981329124';
 
-                    d.innerHTML += `
-                        <div class="movie-card">
+    function load(q, isS = false) {
+        const box = document.getElementById('out');
+        box.innerHTML = '<p>Searching...</p>';
+        
+        let url = isS 
+            ? `https://api.themoviedb.org/3/search/movie?api_key=${k}&query=${q}`
+            : `https://api.themoviedb.org/3/movie/popular?api_key=${k}`;
+
+        fetch(url).then(r => r.json()).then(data => {
+            box.innerHTML = '';
+            data.results.forEach(m => {
+                if(m.poster_path) {
+                    const img = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
+                    // In links se movies MovieBox ki tarah load hongi
+                    const watch = `https://vidsrc.me/embed/movie/${m.id}`;
+                    const down = `https://dl.vidsrc.xyz/movie/${m.id}`;
+                    
+                    box.innerHTML += `
+                        <div class="card">
                             <img src="${img}">
-                            <div class="movie-title">${s.name}</div>
-                            <a href="${s1}" target="_blank" class="btn">Watch Now</a>
-                            <a href="${d1}" target="_blank" class="btn" style="background:#333">Download</a>
+                            <div class="title">${m.title}</div>
+                            <a href="${watch}" target="_blank" class="btn">Watch Now</a>
+                            <a href="${down}" target="_blank" class="btn" style="background:#333">Download</a>
                         </div>`;
                 }
             });
-        }).catch(e => { d.innerHTML = '<p>Error! Please Refresh.</p>'; });
+        }).catch(e => { box.innerHTML = '<p>Error! Click logo to refresh.</p>'; });
     }
 
-    document.getElementById('searchInput').addEventListener('keypress', (e) => {
-        if(e.key === 'Enter') loadMovies(e.target.value);
-    });
+    document.getElementById('s').onkeypress = (e) => {
+        if(e.key === 'Enter') load(e.target.value, true);
+    };
 
-    loadMovies();
+    load(); // Auto load popular movies
 </script>
 </body>
 </html>
