@@ -3,61 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - Poster Gallery</title>
+    <title>H.Movies - No VPN Edition</title>
     <style>
         body { margin:0; font-family:sans-serif; background:#000; color:white; text-align:center; }
-        .nav { padding:15px; background:#111; border-bottom:2px solid red; position:sticky; top:0; z-index:100; }
-        .logo { color:red; font-size:24px; font-weight:bold; }
-        .search { width:80%; padding:12px; margin-top:10px; border-radius:20px; border:none; background:#222; color:white; outline:none; }
+        .nav { padding:15px; background:#111; border-bottom:2px solid red; }
+        .search { width:85%; padding:12px; margin-top:10px; border-radius:25px; border:none; background:#222; color:white; outline:none; }
         .row { display:flex; flex-wrap:wrap; padding:15px; justify-content:center; gap:10px; }
-        .card { width:140px; background:#111; border-radius:8px; overflow:hidden; border:1px solid #333; cursor:pointer; }
-        .card img { width:100%; height:200px; object-fit:cover; display:block; }
-        .title { font-size:11px; padding:5px; height:30px; overflow:hidden; }
+        .card { width:145px; background:#111; border-radius:8px; overflow:hidden; border:1px solid #333; cursor:pointer; }
+        .card img { width:100%; height:210px; object-fit:cover; display:block; }
+        .title { font-size:11px; padding:8px; height:30px; overflow:hidden; }
     </style>
 </head>
 <body>
     <div class="nav">
-        <div class="logo">H.MOVIES GALLERY</div>
-        <input type="text" id="s" class="search" placeholder="Search Movie Name...">
+        <div style="color:red; font-size:24px; font-weight:bold;">H.MOVIES</div>
+        <input type="text" id="s" class="search" placeholder="Search Movie (No VPN Needed)...">
     </div>
-    <div id="out" class="row">Loading Gallery...</div>
+    <div id="out" class="row">Loading Posters...</div>
 
     <script>
-        // Poster Database (OMDb)
+        // No VPN Proxy for Data
+        const proxy = "https://api.allorigins.win/get?url=";
+        const api = encodeURIComponent("https://www.omdbapi.com/?apikey=61f2249e&s=");
+
         function load(q) {
-            var box = document.getElementById('out');
-            var query = q ? q : "2025";
-            
-            fetch("https://www.omdbapi.com/?s=" + encodeURIComponent(query) + "&apikey=61f2249e")
+            const box = document.getElementById('out');
+            const query = q ? q : "2024";
+            box.innerHTML = "Searching...";
+
+            fetch(proxy + api + encodeURIComponent(query))
             .then(res => res.json())
             .then(data => {
+                const results = JSON.parse(data.contents);
                 box.innerHTML = '';
-                if(data.Search) {
-                    data.Search.forEach(m => {
+                if(results.Search) {
+                    results.Search.forEach(m => {
                         if(m.Poster !== 'N/A') {
-                            // Proxying image to bypass blocks
-                            var imgProxy = "https://images.weserv.nl/?url=" + encodeURIComponent(m.Poster);
-                            
-                            var item = document.createElement('div');
+                            // No VPN Proxy for Images
+                            const imgSafe = "https://images.weserv.nl/?url=" + encodeURIComponent(m.Poster);
+                            const item = document.createElement('div');
                             item.className = 'card';
-                            item.innerHTML = `<img src="${imgProxy}"><div class="title">${m.Title}</div>`;
-                            
-                            // Jab poster pe click ho toh watch page pe jaye (Next Step)
-                            item.onclick = function() {
-                                window.location.href = "watch.html?id=" + m.imdbID;
-                            };
-                            
+                            item.innerHTML = `<img src="${imgSafe}"><div class="title">${m.Title}</div>`;
+                            item.onclick = () => window.location.href = "watch.html?id=" + m.imdbID;
                             box.appendChild(item);
                         }
                     });
-                } else { box.innerHTML = "No Posters Found."; }
-            }).catch(e => { box.innerHTML = "Internet Error. Try VPN."; });
+                } else { box.innerHTML = "No movies found."; }
+            });
         }
+        document.getElementById('s').onkeypress = (e) => { if(e.key === 'Enter') load(e.target.value); };
+        window.onload = () => load('Action');
+    </script>
+</body>
+</html>
+Step 2: watch.html (Watch & Download ke liye)
+Is file ko alag se banayein (Add File -> Create new file). Ye player bina VPN ke load hoga:
 
-        document.getElementById('s').onkeypress = function(e) {
-            if(e.key === 'Enter') load(this.value.trim());
-        };
-        window.onload = function() { load('Action'); };
+HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch Online - H.Movies</title>
+    <style>
+        body { background:#000; color:white; text-align:center; font-family:sans-serif; margin:0; }
+        .nav { padding:15px; background:#111; }
+        .player { width:95%; max-width:800px; height:450px; border:1px solid red; margin:20px auto; }
+        .btn { display:inline-block; padding:15px 30px; background:red; color:white; text-decoration:none; border-radius:5px; font-weight:bold; }
+    </style>
+</head>
+<body>
+    <div class="nav"><a href="index.html" style="color:red;text-decoration:none;">← Back to Gallery</a></div>
+    <div id="pBox" class="player"></div>
+    <br>
+    <a href="#" id="dl" class="btn" target="_blank">DOWNLOAD MOVIE</a>
+
+    <script>
+        const id = new URLSearchParams(window.location.search).get('id');
+        if(id) {
+            // No VPN Players
+            document.getElementById('pBox').innerHTML = `<iframe src="https://vidsrc.to/embed/movie/${id}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`;
+            document.getElementById('dl').href = "https://www.2embed.cc/embed/" + id;
+        }
     </script>
 </body>
 </html>
