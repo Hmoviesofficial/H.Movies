@@ -3,89 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - No VPN Edition</title>
+    <title>H.Movies - MovieBox Edition</title>
     <style>
-        body { margin:0; font-family:sans-serif; background:#000; color:white; text-align:center; }
-        .nav { padding:15px; background:#111; border-bottom:2px solid red; }
-        .search { width:85%; padding:12px; margin-top:10px; border-radius:25px; border:none; background:#222; color:white; outline:none; }
-        .row { display:flex; flex-wrap:wrap; padding:15px; justify-content:center; gap:10px; }
-        .card { width:145px; background:#111; border-radius:8px; overflow:hidden; border:1px solid #333; cursor:pointer; }
-        .card img { width:100%; height:210px; object-fit:cover; display:block; }
-        .title { font-size:11px; padding:8px; height:30px; overflow:hidden; }
+        body { margin:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#080808; color:white; }
+        .header { padding:15px; background:#111; border-bottom:2px solid #e50914; position:sticky; top:0; z-index:1000; text-align:center; }
+        .logo { color:#e50914; font-size:28px; font-weight:bold; margin-bottom:10px; }
+        .search-bar { width:90%; max-width:500px; padding:12px; border-radius:25px; border:none; background:#222; color:white; outline:none; font-size:15px; }
+        
+        /* Categories Style */
+        .categories { display:flex; overflow-x:auto; padding:15px; gap:10px; white-space:nowrap; scrollbar-width:none; }
+        .cat-btn { background:#1a1a1a; padding:8px 20px; border-radius:20px; border:1px solid #333; color:#bbb; cursor:pointer; font-weight:bold; transition:0.3s; }
+        .cat-btn:hover, .cat-btn.active { background:#e50914; color:white; border-color:#e50914; }
+
+        .container { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:15px; padding:15px; }
+        .movie-card { background:#111; border-radius:10px; overflow:hidden; border:1px solid #222; transition:0.3s; cursor:pointer; }
+        .movie-card:hover { transform: translateY(-5px); border-color:#e50914; }
+        .movie-card img { width:100%; aspect-ratio: 2/3; object-fit:cover; display:block; background:#1a1a1a; }
+        .movie-title { padding:10px; font-size:12px; height:32px; overflow:hidden; font-weight:600; text-align:center; color:#eee; }
+        #status { text-align:center; padding:20px; color:#888; }
     </style>
 </head>
 <body>
-    <div class="nav">
-        <div style="color:red; font-size:24px; font-weight:bold;">H.MOVIES</div>
-        <input type="text" id="s" class="search" placeholder="Search Movie (No VPN Needed)...">
+
+    <div class="header">
+        <div class="logo">H.MOVIES</div>
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search movies, shows...">
     </div>
-    <div id="out" class="row">Loading Posters...</div>
+
+    <div class="categories">
+        <div class="cat-btn active" onclick="loadMovies('Trending')">Trending</div>
+        <div class="cat-btn" onclick="loadMovies('Action')">Action</div>
+        <div class="cat-btn" onclick="loadMovies('Horror')">Horror</div>
+        <div class="cat-btn" onclick="loadMovies('Comedy')">Comedy</div>
+        <div class="cat-btn" onclick="loadMovies('Marvel')">Marvel</div>
+        <div class="cat-btn" onclick="loadMovies('Bollywood')">Bollywood</div>
+        <div class="cat-btn" onclick="loadMovies('Cartoon')">Animation</div>
+    </div>
+
+    <div id="status"></div>
+    <div id="movieGrid" class="container"></div>
 
     <script>
-        // No VPN Proxy for Data
-        const proxy = "https://api.allorigins.win/get?url=";
-        const api = encodeURIComponent("https://www.omdbapi.com/?apikey=61f2249e&s=");
+        const API_KEY = '61f2249e'; // OMDb API
 
-        function load(q) {
-            const box = document.getElementById('out');
-            const query = q ? q : "2024";
-            box.innerHTML = "Searching...";
+        async function loadMovies(query) {
+            const grid = document.getElementById('movieGrid');
+            const status = document.getElementById('status');
+            
+            status.innerText = `Loading ${query}...`;
+            grid.innerHTML = '';
 
-            fetch(proxy + api + encodeURIComponent(query))
-            .then(res => res.json())
-            .then(data => {
-                const results = JSON.parse(data.contents);
-                box.innerHTML = '';
-                if(results.Search) {
-                    results.Search.forEach(m => {
-                        if(m.Poster !== 'N/A') {
-                            // No VPN Proxy for Images
-                            const imgSafe = "https://images.weserv.nl/?url=" + encodeURIComponent(m.Poster);
-                            const item = document.createElement('div');
-                            item.className = 'card';
-                            item.innerHTML = `<img src="${imgSafe}"><div class="title">${m.Title}</div>`;
-                            item.onclick = () => window.location.href = "watch.html?id=" + m.imdbID;
-                            box.appendChild(item);
+            try {
+                const response = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(query)}&apikey=${API_KEY}`);
+                const data = await response.json();
+
+                if (data.Search) {
+                    status.innerText = '';
+                    data.Search.forEach(movie => {
+                        if (movie.Poster !== 'N/A') {
+                            // Using Image Proxy for No-VPN access
+                            const safeImg = `https://images.weserv.nl/?url=${encodeURIComponent(movie.Poster)}`;
+                            
+                            const card = document.createElement('div');
+                            card.className = 'movie-card';
+                            card.innerHTML = `
+                                <img src="${safeImg}" alt="${movie.Title}">
+                                <div class="movie-title">${movie.Title}</div>
+                            `;
+                            // Link to Watch page (which we'll make tomorrow)
+                            card.onclick = () => alert("Title: " + movie.Title + "\nWatch/Download links will be added tomorrow!");
+                            grid.appendChild(card);
                         }
                     });
-                } else { box.innerHTML = "No movies found."; }
-            });
+                } else {
+                    status.innerText = 'No movies found in this category.';
+                }
+            } catch (error) {
+                status.innerText = 'Connection error. Please check internet.';
+            }
         }
-        document.getElementById('s').onkeypress = (e) => { if(e.key === 'Enter') load(e.target.value); };
-        window.onload = () => load('Action');
-    </script>
-</body>
-</html>
-Step 2: watch.html (Watch & Download ke liye)
-Is file ko alag se banayein (Add File -> Create new file). Ye player bina VPN ke load hoga:
 
-HTML
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch Online - H.Movies</title>
-    <style>
-        body { background:#000; color:white; text-align:center; font-family:sans-serif; margin:0; }
-        .nav { padding:15px; background:#111; }
-        .player { width:95%; max-width:800px; height:450px; border:1px solid red; margin:20px auto; }
-        .btn { display:inline-block; padding:15px 30px; background:red; color:white; text-decoration:none; border-radius:5px; font-weight:bold; }
-    </style>
-</head>
-<body>
-    <div class="nav"><a href="index.html" style="color:red;text-decoration:none;">← Back to Gallery</a></div>
-    <div id="pBox" class="player"></div>
-    <br>
-    <a href="#" id="dl" class="btn" target="_blank">DOWNLOAD MOVIE</a>
+        // Search logic
+        document.getElementById('searchInput').onkeypress = function(e) {
+            if(e.key === 'Enter') {
+                loadMovies(this.value.trim());
+                // Remove active class from buttons
+                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            }
+        };
 
-    <script>
-        const id = new URLSearchParams(window.location.search).get('id');
-        if(id) {
-            // No VPN Players
-            document.getElementById('pBox').innerHTML = `<iframe src="https://vidsrc.to/embed/movie/${id}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`;
-            document.getElementById('dl').href = "https://www.2embed.cc/embed/" + id;
-        }
+        // Category button active state
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.onclick = function() {
+                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                loadMovies(this.innerText);
+            }
+        });
+
+        // Initial Load
+        window.onload = () => loadMovies('2025');
     </script>
 </body>
 </html>
