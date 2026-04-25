@@ -5,38 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>H.Movies Pro - Global</title>
     <style>
-        body { margin:0; font-family: sans-serif; background:#000; color:#fff; }
-        .nav { padding:15px; background:#111; border-bottom:3px solid #2ecc71; text-align:center; position:sticky; top:0; z-index:100; }
+        body { margin:0; font-family: sans-serif; background:#000; color:#fff; text-align:center; }
+        .nav { padding:15px; background:#111; border-bottom:3px solid #2ecc71; }
         .logo { color:#2ecc71; font-size:24px; font-weight:bold; margin-bottom:10px; }
-        .search { width:85%; padding:12px; border-radius:5px; border:1px solid #333; background:#222; color:#fff; outline:none; }
-        .cats { display:flex; overflow-x:auto; padding:10px; gap:10px; justify-content:center; }
-        .c-btn { background:#1a1a1a; padding:8px 15px; border-radius:4px; border:1px solid #333; cursor:pointer; font-size:12px; }
-        .active { background:#2ecc71; color:#000; font-weight:bold; }
-        .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px; padding:15px; }
-        .card { background:#111; border-radius:8px; border:1px solid #222; overflow:hidden; }
-        .card img { width:100%; height:200px; object-fit:cover; display:block; background:#222; }
-        .t { padding:8px; font-size:11px; text-align:center; height:30px; overflow:hidden; }
+        .search { width:85%; padding:12px; border-radius:5px; border:none; background:#222; color:#fff; outline:none; }
+        .grid { display:flex; flex-wrap:wrap; padding:15px; gap:10px; justify-content:center; }
+        .card { width:140px; background:#111; border-radius:8px; border:1px solid #333; overflow:hidden; }
+        .card img { width:100%; height:200px; object-fit:cover; display:block; }
     </style>
 </head>
 <body>
     <div class="nav">
         <div class="logo">H.MOVIES PRO</div>
-        <input type="text" id="s" class="search" placeholder="Search Worldwide Movies...">
-        <div class="cats">
-            <div class="c-btn active" onclick="load('2026')">Trending</div>
-            <div class="c-btn" onclick="load('Action')">Action</div>
-            <div class="c-btn" onclick="load('Horror')">Horror</div>
-            <div class="c-btn" onclick="load('Bollywood')">Bollywood</div>
-        </div>
+        <input type="text" id="s" class="search" placeholder="Search Movie (e.g. Avatar)...">
     </div>
-    <div id="out" class="grid"></div>
+    <div id="out" class="grid">Type movie name and press Enter...</div>
 
     <script>
         function load(q) {
             const box = document.getElementById('out');
-            box.innerHTML = 'Syncing...';
+            box.innerHTML = 'Connecting to Global Servers...';
             
-            // Sabse stable API key aur images ke liye proxy
+            // Sabse stable API key use kar raha hoon
             fetch("https://www.omdbapi.com/?s=" + encodeURIComponent(q) + "&apikey=61f2249e")
             .then(res => res.json())
             .then(data => {
@@ -44,19 +34,20 @@
                 if(data.Search) {
                     data.Search.forEach(m => {
                         if(m.Poster !== 'N/A') {
-                            // Ye proxy images ko block hone se bachati hai
+                            // Image Proxy bypass
                             const proxyImg = "https://images.weserv.nl/?url=" + encodeURIComponent(m.Poster);
                             const item = document.createElement('div');
                             item.className = 'card';
-                            item.innerHTML = `<img src="${proxyImg}"><div class="t">${m.Title}</div>`;
+                            item.innerHTML = `<img src="${proxyImg}"><div style="font-size:11px;padding:5px;">${m.Title}</div>`;
                             box.appendChild(item);
                         }
                     });
-                } else { box.innerHTML = "No Results. Try another spelling."; }
-            }).catch(e => { box.innerHTML = "Internet Blocked. Try VPN."; });
+                } else { box.innerHTML = "No Results. Check spelling or use VPN."; }
+            }).catch(e => { box.innerHTML = "Internet Error. Try VPN."; });
         }
         document.getElementById('s').onkeypress = (e) => { if(e.key==='Enter') load(e.target.value); };
-        window.onload = () => load('2026');
+        // Page khulte hi automatic movie load ho
+        window.onload = () => load('2025');
     </script>
 </body>
 </html>
