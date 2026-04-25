@@ -3,65 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - No VPN Edition</title>
+    <title>H.Movies - Final Fix</title>
     <style>
-        body { margin:0; font-family:sans-serif; background:#000; color:white; }
-        .nav { padding:15px; background:#111; text-align:center; border-bottom:2px solid red; position:sticky; top:0; z-index:100; }
-        .logo { color:red; font-size:24px; font-weight:bold; }
-        .search { width:80%; padding:10px; margin-top:10px; border-radius:20px; border:none; outline:none; }
-        .row { display:flex; flex-wrap:wrap; padding:10px; justify-content:center; gap:10px; }
-        .card { width:45%; background:#1a1a1a; border-radius:10px; overflow:hidden; border:1px solid #333; }
-        .card img { width:100%; height:220px; object-fit:cover; }
-        .t { font-size:12px; padding:5px; text-align:center; height:30px; overflow:hidden; }
-        .btn { display:block; background:red; color:white; text-decoration:none; padding:8px; text-align:center; font-weight:bold; font-size:12px; margin:5px; border-radius:5px; }
+        body { margin:0; font-family:sans-serif; background:#000; color:white; text-align:center; }
+        .nav { padding:15px; background:#111; border-bottom:2px solid red; position:sticky; top:0; z-index:100; }
+        .logo { color:red; font-size:24px; font-weight:bold; text-transform:uppercase; }
+        .search { width:80%; padding:12px; margin-top:10px; border-radius:25px; border:1px solid #444; background:#222; color:white; outline:none; }
+        .row { display:flex; flex-wrap:wrap; padding:15px; justify-content:center; gap:15px; }
+        .card { width:160px; background:#1a1a1a; border-radius:10px; overflow:hidden; border:1px solid #333; transition: 0.3s; }
+        .card:hover { border-color:red; transform: scale(1.02); }
+        .card img { width:100%; height:240px; object-fit:cover; background:#222; }
+        .t { font-size:13px; padding:8px; height:35px; overflow:hidden; font-weight:bold; }
+        .btn { display:block; background:red; color:white; text-decoration:none; padding:10px; font-weight:bold; font-size:12px; border-radius:0 0 10px 10px; }
     </style>
 </head>
 <body>
     <div class="nav">
-        <div class="logo">H.Movies</div>
-        <input type="text" id="s" class="search" placeholder="Type Movie Name (e.g. Batman)...">
+        <div class="logo">H.Movies Official</div>
+        <input type="text" id="s" class="search" placeholder="Search any movie (e.g. Avatar)...">
     </div>
-    <div id="out" class="row"></div>
+    <div id="out" class="row">Loading movies... Please wait.</div>
 
     <script>
-        // Direct Database without TMDB restrictions
+        // OMDb API with a fallback for empty search
+        var api = "https://www.omdbapi.com/?apikey=61f2249e&s=";
+
         function load(q) {
             var box = document.getElementById('out');
-            box.innerHTML = '<p>Searching World Database...</p>';
+            var searchItem = q ? q : "2024"; // Default movies for first look
             
-            // Search or Default
-            var query = q ? q : '2024';
-            var url = "https://www.omdbapi.com/?s=" + encodeURIComponent(query) + "&apikey=61f2249e";
-
-            fetch(url).then(res => res.json()).then(data => {
+            fetch(api + encodeURIComponent(searchItem))
+            .then(res => res.json())
+            .then(data => {
                 box.innerHTML = '';
                 if(data.Search) {
                     data.Search.forEach(m => {
                         if(m.Poster !== 'N/A') {
-                            var item = document.createElement('div');
-                            item.className = 'card';
-                            // Embed Link for Watch & Download
                             var watch = "https://vidsrc.to/embed/movie/" + m.imdbID;
-                            
-                            item.innerHTML = `
-                                <img src="${m.Poster}">
-                                <div class="t">${m.Title}</div>
-                                <a href="${watch}" target="_blank" class="btn">WATCH / DOWNLOAD</a>
-                            `;
-                            box.appendChild(item);
+                            box.innerHTML += `
+                                <div class="card">
+                                    <img src="${m.Poster}">
+                                    <div class="t">${m.Title}</div>
+                                    <a href="${watch}" target="_blank" class="btn">WATCH NOW</a>
+                                </div>`;
                         }
                     });
                 } else {
-                    box.innerHTML = '<p>No movies found. Try another name.</p>';
+                    box.innerHTML = '<p>No results found. Try searching "Action" or "Horror".</p>';
                 }
-            }).catch(e => {
-                box.innerHTML = '<p>Server busy. Try again.</p>';
-            });
+            })
+            .catch(e => { box.innerHTML = '<p>Server busy. Check internet.</p>'; });
         }
 
         document.getElementById('s').onkeypress = function(e) {
-            if(e.key === 'Enter') load(this.value);
+            if(e.key === 'Enter') load(this.value.trim());
         }
+        
         window.onload = function() { load(''); };
     </script>
 </body>
