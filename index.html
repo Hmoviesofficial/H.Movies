@@ -3,66 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - Pro Edition</title>
+    <title>H.Movies - Official</title>
     <style>
-        body { margin:0; font-family:sans-serif; background:#050505; color:white; padding-bottom:80px; }
-        .nav { padding:15px; background:#111; position:sticky; top:0; z-index:100; text-align:center; border-bottom:2px solid #e50914; }
+        body { margin:0; font-family:sans-serif; background:#080808; color:white; padding-bottom:80px; }
+        .nav { padding:15px; background:#141414; position:sticky; top:0; z-index:100; text-align:center; border-bottom:1px solid #333; }
         .logo { color:#e50914; font-weight:bold; font-size:26px; margin-bottom:10px; }
-        .search { background:#222; border:1px solid #444; padding:12px; border-radius:5px; color:white; width:85%; outline:none; }
+        .search { background:#2a2d36; border:none; padding:12px; border-radius:8px; color:white; width:85%; outline:none; }
         .row { display:flex; flex-wrap:wrap; padding:10px; gap:10px; justify-content:space-around; }
-        .card { width:45%; background:#111; border-radius:8px; margin-bottom:15px; overflow:hidden; border:1px solid #222; }
-        .card img { width:100%; height:220px; object-fit:cover; }
-        .title { font-size:11px; padding:8px; text-align:center; font-weight:bold; height:35px; overflow:hidden; }
-        .btn { display:block; padding:10px; border-radius:4px; text-decoration:none; font-weight:bold; color:white; margin:5px; font-size:11px; text-align:center; background:#e50914; }
+        .card { width:45%; background:#141414; border-radius:10px; margin-bottom:15px; overflow:hidden; border:1px solid #222; text-align:center; }
+        .card img { width:100%; height:230px; object-fit:cover; }
+        .title { font-size:11px; padding:5px; height:35px; overflow:hidden; font-weight:bold; }
+        .btn { display:block; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; color:white; margin:5px; font-size:11px; }
+        .watch { background:#e50914; }
+        .down { background:#333; border:1px solid #444; }
     </style>
 </head>
 <body>
 
 <div class="nav">
     <div class="logo">H.Movies</div>
-    <input type="text" id="s" class="search" placeholder="Search MovieBox Style...">
+    <input type="text" id="s" class="search" placeholder="Search Movie Name...">
 </div>
 
 <div id="out" class="row"></div>
 
 <script>
-    // Ye API Key professional movie data (TMDB) se connect karti hai
     const k = '86202476b76a0841f22e848981329124';
 
-    function load(q, isS = false) {
+    function load(path, isS = false) {
         const box = document.getElementById('out');
-        box.innerHTML = '<p>Searching...</p>';
-        
-        let url = isS 
-            ? `https://api.themoviedb.org/3/search/movie?api_key=${k}&query=${q}`
-            : `https://api.themoviedb.org/3/movie/popular?api_key=${k}`;
+        box.innerHTML = '<p>Loading Movies...</p>';
+                let url = isS 
+            ? "https://api.themoviedb.org/3/search/movie?api_key=" + k + "&query=" + path
+            : "https://api.themoviedb.org/3/" + path + "?api_key=" + k;
 
         fetch(url).then(r => r.json()).then(data => {
             box.innerHTML = '';
             data.results.forEach(m => {
                 if(m.poster_path) {
                     const img = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
-                    // In links se movies MovieBox ki tarah load hongi
-                    const watch = `https://vidsrc.me/embed/movie/${m.id}`;
-                    const down = `https://dl.vidsrc.xyz/movie/${m.id}`;
+                    // Stable Watch and Download Links
+                    const s1 = `https://vidsrc.me/embed/movie/${m.id}`;
+                    const d1 = `https://dl.vidsrc.xyz/movie/${m.id}`;
                     
                     box.innerHTML += `
                         <div class="card">
                             <img src="${img}">
                             <div class="title">${m.title}</div>
-                            <a href="${watch}" target="_blank" class="btn">Watch Now</a>
-                            <a href="${down}" target="_blank" class="btn" style="background:#333">Download</a>
+                            <a href="${s1}" target="_blank" rel="noopener" class="btn watch">Watch Now</a>
+                            <a href="${d1}" target="_blank" rel="noopener" class="btn down">Download</a>
                         </div>`;
                 }
             });
-        }).catch(e => { box.innerHTML = '<p>Error! Click logo to refresh.</p>'; });
+        }).catch(e => { box.innerHTML = '<p>Connection Error. Refresh Page.</p>'; });
     }
 
     document.getElementById('s').onkeypress = (e) => {
         if(e.key === 'Enter') load(e.target.value, true);
     };
 
-    load(); // Auto load popular movies
+    load('movie/popular');
 </script>
 </body>
 </html>
