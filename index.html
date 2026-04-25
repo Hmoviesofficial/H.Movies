@@ -33,27 +33,27 @@
     function load(path, isS = false) {
         const box = document.getElementById('out');
         box.innerHTML = '<p>Loading Movies...</p>';
-                let url = isS 
-            ? "https://api.themoviedb.org/3/search/movie?api_key=" + k + "&query=" + path
-            : "https://api.themoviedb.org/3/" + path + "?api_key=" + k;
-
+                      let url = isS 
+             "https://api.themoviedb.org/3/search/movie?api_key=" + k + "&query=" + path
+             "https://api.themoviedb.org/3/" + path + "?api_key=" + k;
+  
         fetch(url).then(r => r.json()).then(data => {
             box.innerHTML = '';
             data.results.forEach(m => {
                 if(m.poster_path) {
                     const img = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
                     // Stable Watch and Download Links
-                    const s1 = `https://vidsrc.me/embed/movie/${m.id}`;
-                    const d1 = `https://dl.vidsrc.xyz/movie/${m.id}`;
+                                        const s1 = "https://vidsrc.me/embed/movie/" + m.id;
+                    const d1 = "https://dl.vidsrc.xyz/movie/" + m.id;
+
                     
-                    box.innerHTML += `
-                        <div class="card">
-                            <img src="${img}">
-                            <div class="title">${m.title}</div>
-                            <a href="${s1}" target="_blank" rel="noopener" class="btn watch">Watch Now</a>
-                            <a href="${d1}" target="_blank" rel="noopener" class="btn down">Download</a>
-                        </div>`;
-                }
+                                        box.innerHTML += '<div class="card">' +
+                            '<img src="' + img + '">' +
+                            '<div class="title">' + m.title + '</div>' +
+                            '<a href="' + s1 + '" target="_blank" class="btn watch">Watch Now</a>' +
+                            '<a href="' + d1 + '" target="_blank" class="btn down">Download</a>' +
+                        '</div>';
+
             });
         }).catch(e => { box.innerHTML = '<p>Connection Error. Refresh Page.</p>'; });
     }
@@ -61,7 +61,6 @@
     document.getElementById('s').onkeypress = (e) => {
         if(e.key === 'Enter') load(e.target.value, true);
     };
-
     load('movie/popular');
 </script>
 </body>
