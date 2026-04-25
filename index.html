@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - Stream & Download</title>
+    <title>H.Movies - Official</title>
     <style>
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #080808; color: white; overflow-x: hidden; padding-bottom: 80px; }
         .top-nav { padding: 15px; display: flex; align-items: center; background: #141414; position: sticky; top: 0; z-index: 1000; }
         .logo { color: #e50914; font-weight: bold; font-size: 20px; margin-right: 15px; }
-        .search-box { background: #2a2d36; border: none; padding: 10px 15px; border-radius: 20px; color: white; width: 70%; }
+        .search-box { background: #2a2d36; border: none; padding: 10px 15px; border-radius: 20px; color: white; width: 70%; outline: none; }
         .section-title { padding: 20px 15px 10px; font-size: 18px; font-weight: bold; }
-        .movie-row { display: flex; overflow-x: auto; padding: 0 15px; gap: 15px; }
-        .movie-row::-webkit-scrollbar { display: none; }
-        .movie-card { min-width: 130px; position: relative; }
+        .movie-row { display: flex; overflow-x: auto; padding: 0 15px; gap: 15px; flex-wrap: wrap; }
+        .movie-card { width: 130px; position: relative; margin-bottom: 20px; }
         .movie-card img { width: 130px; height: 190px; border-radius: 8px; object-fit: cover; border: 1px solid #333; }
         .rank-num { position: absolute; top: -5px; left: -5px; background: #e50914; color: white; font-weight: bold; width: 25px; height: 25px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
         .movie-title { font-size: 11px; margin-top: 5px; text-align: center; color: #bbb; height: 30px; overflow: hidden; }
@@ -27,14 +26,11 @@
 
     <div class="top-nav">
         <div class="logo">H.Movies</div>
-        <input type="text" class="search-box" placeholder="Search...">
+        <input type="text" id="searchInput" class="search-box" placeholder="Movie ka naam likhein...">
     </div>
 
-    <div class="section-title">Top Rankings</div>
-    <div id="rankings-row" class="movie-row"></div>
-
-    <div class="section-title">Popular Cinema</div>
-    <div id="cinema-row" class="movie-row"></div>
+    <div class="section-title" id="title-text">Trending Movies</div>
+    <div id="movie-display" class="movie-row"></div>
 
     <div class="bottom-nav">
         <div style="color:#e50914">🏠<br>Home</div>
@@ -44,34 +40,51 @@
     </div>
 
     <script>
-        fetch('https://api.tvmaze.com/search/shows?q=movie')
-        .then(res => res.json()).then(data => {
-            const rRow = document.getElementById('rankings-row');
-            const cRow = document.getElementById('cinema-row');
-            data.forEach((item, index) => {
-                const show = item.show;
-                const imdbId = show.externals.imdb;
-                const img = show.image ? show.image.medium : 'https://via.placeholder.com/130x190';
-                
-                // Naye Working Links
-                const watchUrl = imdbId ? `https://vidsrc.me/embed/movie?imdb=${imdbId}` : '#';
-                const downUrl = imdbId ? `https://vidsrc.xyz/embed/movie/${imdbId}` : '#';
-                
-                const html = `
-                <div class="movie-card">
-                    ${index < 3 ? `<div class="rank-num">${index+1}</div>` : ''}
-                    <img src="${img}">
-                    <div class="movie-title">${show.name}</div>
-                    <div class="btn-group">
-                        <a href="${watchUrl}" target="_blank" class="btn watch">Watch</a>
-                        <a href="${downUrl}" target="_blank" class="btn down">Down</a>
-                    </div>
-                </div>`;
-                
-                if(index < 5) rRow.innerHTML += html; else cRow.innerHTML += html;
+        const movieDisplay = document.getElementById('movie-display');
+        const searchInput = document.getElementById('searchInput');
+        const titleText = document.getElementById('title-text');
+
+        // Function: Movies Load Karne ke liye
+        function loadMovies(query = 'movie') {
+            fetch(`https://api.tvmaze.com/search/shows?q=${query}`)
+            .then(res => res.json())
+            .then(data => {
+                movieDisplay.innerHTML = ''; // Purani movies saaf karein
+                data.forEach((item, index) => {
+                    const show = item.show;
+                    const imdbId = show.externals.imdb;
+                    const img = show.image ? show.image.medium : 'https://via.placeholder.com/130x190';
+                    
+                    // Working Links (Updated for Mobile)
+                    const watchUrl = imdbId ? `https://vidsrc.me/embed/movie?imdb=${imdbId}` : '#';
+                    const downUrl = imdbId ? `https://vidsrc.xyz/embed/movie/${imdbId}` : '#';
+                    
+                    if (imdbId) { // Sirf wahi dikhayein jinka link maujud ho
+                        movieDisplay.innerHTML += `
+                        <div class="movie-card">
+                            ${index < 3 && query === 'movie' ? `<div class="rank-num">${index+1}</div>` : ''}
+                            <img src="${img}">
+                            <div class="movie-title">${show.name}</div>
+                            <div class="btn-group">
+                                <a href="${watchUrl}" target="_blank" class="btn watch">Watch</a>
+                                <a href="${downUrl}" target="_blank" class="btn down">Down</a>
+                            </div>
+                        </div>`;
+                    }
+                });
             });
+        }
+
+        // Search ka Event
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter' || searchInput.value.length > 3) {
+                titleText.innerText = "Search Results...";
+                loadMovies(searchInput.value);
+            }
         });
+
+        // Pehli baar load karein
+        loadMovies();
     </script>
 </body>
 </html>
-
