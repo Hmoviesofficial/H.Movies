@@ -3,67 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies Official - Fix</title>
+    <title>H.Movies - Global Watch & Download</title>
     <style>
-        body { margin:0; font-family:sans-serif; background:#080808; color:white; }
-        .nav { padding:15px; background:#141414; text-align:center; border-bottom:1px solid #333; position:sticky; top:0; z-index:100; }
-        .logo { color:#e50914; font-weight:bold; font-size:26px; }
-        .search { background:#2a2d36; border:none; padding:12px; border-radius:8px; color:white; width:85%; margin-top:10px; outline:none; }
-        .row { display:flex; flex-wrap:wrap; padding:10px; gap:10px; justify-content:center; }
-        .card { width:45%; background:#141414; border-radius:10px; margin-bottom:15px; overflow:hidden; border:1px solid #222; text-align:center; }
-        .card img { width:100%; height:230px; object-fit:cover; display:block; background:#222; }
-        .title { font-size:12px; padding:8px 5px; height:35px; overflow:hidden; font-weight:bold; }
-        .btn { display:block; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; color:white; margin:5px; font-size:11px; background:#e50914; }
+        body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#0a0a0a; color:white; }
+        .nav { padding:20px; background:#111; text-align:center; border-bottom:2px solid #e50914; position:sticky; top:0; z-index:100; }
+        .logo { color:#e50914; font-weight:bold; font-size:28px; text-transform:uppercase; letter-spacing:2px; }
+        .search { background:#222; border:1px solid #444; padding:12px; border-radius:25px; color:white; width:85%; max-width:600px; margin-top:15px; outline:none; transition:0.3s; }
+        .search:focus { border-color:#e50914; box-shadow: 0 0 10px #e50914; }
+        .row { display:flex; flex-wrap:wrap; padding:20px; gap:15px; justify-content:center; }
+        .card { width:160px; background:#181818; border-radius:12px; overflow:hidden; border:1px solid #333; transition:0.3s; cursor:pointer; }
+        .card:hover { transform:translateY(-5px); border-color:#e50914; }
+        .card img { width:100%; height:240px; object-fit:cover; background:#222; }
+        .title { font-size:13px; padding:10px; height:35px; overflow:hidden; text-align:center; font-weight:600; line-height:1.2; }
+        .btn-box { display:flex; flex-direction:column; padding:5px; }
+        .btn { padding:8px; text-decoration:none; font-weight:bold; color:white; text-align:center; background:#e50914; margin:3px; border-radius:5px; font-size:11px; }
+        .btn-dl { background:#222; border:1px solid #e50914; }
+        #status { text-align:center; padding:20px; color:#efefef; font-size:14px; }
     </style>
 </head>
 <body>
     <div class="nav">
         <div class="logo">H.Movies</div>
-        <input type="text" id="s" class="search" placeholder="Type Movie Name (e.g. Joker)...">
+        <input type="text" id="s" class="search" placeholder="Search Movie (e.g. Iron Man, Pushpa, Joker)...">
     </div>
+    <div id="status">Type a movie name and press Enter</div>
     <div id="out" class="row"></div>
 
     <script>
-        // Alternative Database (OMDb) and TMDB mix
         var k = '86202476b76a0841f22e848981329124';
 
         function load(q) {
             var box = document.getElementById('out');
-            box.innerHTML = '<p style="padding:20px;">Loading Movies...</p>';
+            var status = document.getElementById('status');
+            status.innerHTML = 'Connecting to Global Servers...';
             
-            // Agar search khali hai to trending dikhao, warna search karo
+            // TMDB Search with trending fallback
             var url = q 
                 ? "https://api.themoviedb.org/3/search/movie?api_key=" + k + "&query=" + encodeURIComponent(q)
-                : "https://api.themoviedb.org/3/trending/movie/week?api_key=" + k;
+                : "https://api.themoviedb.org/3/movie/popular?api_key=" + k;
 
-            fetch(url).then(function(res) { return res.json(); }).then(function(data) {
+            fetch(url).then(res => res.json()).then(data => {
+                status.innerHTML = q ? 'Results for: ' + q : 'Trending Worldwide';
                 box.innerHTML = '';
+                
                 if(!data.results || data.results.length === 0) {
-                    box.innerHTML = '<p>No results found.</p>';
+                    status.innerHTML = 'No movies found. Check spelling.';
                     return;
                 }
-                data.results.forEach(function(m) {
+
+                data.results.forEach(m => {
                     if(m.poster_path) {
-                        // Image ko Proxy ke zariye load karna (VPN ka jhanjhat khatam karne ke liye)
+                        // Proxy logic to bypass block
                         var img = "https://images.weserv.nl/?url=https://image.tmdb.org/t/p/w500" + m.poster_path;
-                        var watch = "https://vidsrc.to/embed/movie/" + m.id;
-                        
+                        var watchLink = "https://vidsrc.me/embed/movie?tmdb=" + m.id;
+                        var downloadLink = "https://www.2embed.cc/embed/" + m.id;
+
                         var item = document.createElement('div');
                         item.className = 'card';
-                        item.innerHTML = '<img src="' + img + '" onerror="this.src=\'https://via.placeholder.com/500x750?text=No+Image\'"><div class="title">' + m.title + '</div><a href="' + watch + '" target="_blank" class="btn">Watch Now</a>';
+                        item.innerHTML = `
+                            <img src="${img}" onerror="this.src='https://via.placeholder.com/500x750?text=Poster+Blocked'">
+                            <div class="title">${m.title}</div>
+                            <div class="btn-box">
+                                <a href="${watchLink}" target="_blank" class="btn">WATCH NOW</a>
+                                <a href="${downloadLink}" target="_blank" class="btn btn-dl">DOWNLOAD</a>
+                            </div>
+                        `;
                         box.appendChild(item);
                     }
                 });
-            }).catch(function(e) {
-                box.innerHTML = '<p>Connection Error. Try searching a movie name.</p>';
+            }).catch(err => {
+                status.innerHTML = 'Connection Error. Please check Internet.';
             });
         }
 
         document.getElementById('s').onkeypress = function(e) {
-            if(e.key === 'Enter') load(e.target.value.trim());
+            if(e.key === 'Enter') {
+                load(e.target.value.trim());
+            }
         };
-        
-        window.onload = function() { load('Action'); }; // Initial search to force data
+
+        // Initial Load
+        window.onload = function() { load(''); };
     </script>
 </body>
 </html>
