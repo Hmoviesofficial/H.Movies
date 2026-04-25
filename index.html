@@ -8,63 +8,94 @@
 <style>
 body {
   margin: 0;
-  font-family: Arial;
-  background: #0d0d0d;
+  font-family: 'Segoe UI', sans-serif;
+  background: #0b0b0b;
   color: white;
 }
 
-/* Header */
+/* HEADER */
 header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 15px;
-  background: #111;
+  background: linear-gradient(90deg, #000, #111);
 }
 
 h1 {
   color: #00ff88;
-  font-size: 20px;
 }
 
 input {
-  padding: 8px;
-  border-radius: 5px;
+  padding: 10px;
+  border-radius: 8px;
   border: none;
+  background: #222;
+  color: white;
+  width: 50%;
 }
 
-/* Movies */
+/* HERO */
+.hero {
+  height: 60vh;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+}
+
+.hero h2 {
+  font-size: 28px;
+}
+
+/* MOVIES */
 .movies {
   display: flex;
   overflow-x: auto;
-  gap: 10px;
-  padding: 10px;
+  gap: 15px;
+  padding: 15px;
+}
+
+.movies::-webkit-scrollbar {
+  display: none;
 }
 
 .movie {
-  min-width: 120px;
-  cursor: pointer;
+  min-width: 160px;
+  transition: transform 0.3s;
+}
+
+.movie:hover {
+  transform: scale(1.1);
 }
 
 .movie img {
   width: 100%;
-  border-radius: 10px;
+  height: 230px;
+  object-fit: cover;
+  border-radius: 12px;
 }
 
-/* Popup */
+.movie p {
+  text-align: center;
+  font-size: 14px;
+}
+
+/* POPUP */
 .popup {
   display: none;
   position: fixed;
   top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.95);
 }
 
 .popup-content {
-  background: #222;
+  background: #1a1a1a;
   padding: 20px;
-  margin: 100px auto;
+  margin: 120px auto;
   width: 80%;
   text-align: center;
   border-radius: 10px;
@@ -72,16 +103,17 @@ input {
 
 button {
   margin: 10px;
-  padding: 10px;
+  padding: 10px 15px;
   border: none;
   background: #00ff88;
+  border-radius: 6px;
   cursor: pointer;
 }
 
 #close {
   float: right;
-  cursor: pointer;
   color: red;
+  cursor: pointer;
 }
 </style>
 
@@ -91,15 +123,19 @@ button {
 
 <header>
   <h1>H.MOVIES PRO</h1>
-  <input type="text" placeholder="Search movies...">
+  <input id="search" placeholder="Search movies...">
 </header>
 
-<section>
-  <h2 style="padding-left:10px;">🔥 Trending</h2>
-  <div id="trending" class="movies"></div>
-</section>
+<!-- HERO -->
+<div id="hero" class="hero">
+  <h2 id="heroTitle"></h2>
+</div>
 
-<!-- Popup -->
+<!-- TRENDING -->
+<h2 style="padding-left:15px;">🔥 Trending</h2>
+<div id="trending" class="movies"></div>
+
+<!-- POPUP -->
 <div id="popup" class="popup">
   <div class="popup-content">
     <span id="close">X</span>
@@ -112,25 +148,32 @@ button {
 <script>
 const API_KEY = "f409489a42d61f514484fa959f76fec7";
 const BASE_URL = "https://api.themoviedb.org/3";
-const IMG_URL = "https://image.tmdb.org/t/p/w500";
+const IMG = "https://image.tmdb.org/t/p/w500";
 
-const trendingContainer = document.getElementById("trending");
-const popup = document.getElementById("popup");
-const closeBtn = document.getElementById("close");
-const movieTitle = document.getElementById("movieTitle");
+const trending = document.getElementById("trending");
+const hero = document.getElementById("hero");
+const heroTitle = document.getElementById("heroTitle");
 
 let currentMovie = "";
 
-// Fetch Trending Movies
-async function getTrending() {
+// FETCH TRENDING
+async function getMovies() {
   const res = await fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`);
   const data = await res.json();
+
+  showHero(data.results[0]);
   showMovies(data.results);
 }
 
-// Show Movies
+// HERO SECTION
+function showHero(movie) {
+  hero.style.backgroundImage = `url(${IMG + movie.backdrop_path})`;
+  heroTitle.innerText = movie.title;
+}
+
+// SHOW MOVIES
 function showMovies(movies) {
-  trendingContainer.innerHTML = "";
+  trending.innerHTML = "";
 
   movies.forEach(movie => {
     if (!movie.poster_path) return;
@@ -139,38 +182,37 @@ function showMovies(movies) {
     div.classList.add("movie");
 
     div.innerHTML = `
-      <img src="${IMG_URL + movie.poster_path}" />
+      <img src="${IMG + movie.poster_path}">
       <p>${movie.title}</p>
     `;
 
     div.onclick = () => openPopup(movie.title);
 
-    trendingContainer.appendChild(div);
+    trending.appendChild(div);
   });
 }
 
-// Open Popup
+// POPUP
 function openPopup(title) {
   currentMovie = title;
-  movieTitle.innerText = title;
-  popup.style.display = "block";
+  document.getElementById("movieTitle").innerText = title;
+  document.getElementById("popup").style.display = "block";
 }
 
-// Close Popup
-closeBtn.onclick = () => popup.style.display = "none";
+document.getElementById("close").onclick = () => {
+  document.getElementById("popup").style.display = "none";
+};
 
-// Trailer Button
+// BUTTONS
 document.getElementById("watchTrailer").onclick = () => {
   window.open(`https://www.youtube.com/results?search_query=${currentMovie} trailer`);
 };
 
-// Find Movie Button
 document.getElementById("findMovie").onclick = () => {
   window.open(`https://www.google.com/search?q=${currentMovie} full movie`);
 };
 
-// Load Movies
-getTrending();
+getMovies();
 </script>
 
 </body>
