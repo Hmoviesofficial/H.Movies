@@ -3,48 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - Official</title>
+    <title>H.Movies - Poster Gallery</title>
     <style>
         body { margin:0; font-family:sans-serif; background:#000; color:white; text-align:center; }
-        .nav { padding:20px; background:#111; border-bottom:3px solid red; }
-        .search { width:80%; padding:15px; margin-top:10px; border-radius:25px; border:none; outline:none; background:#222; color:white; }
-        .row { display:flex; flex-wrap:wrap; padding:20px; gap:10px; justify-content:center; }
-        .card { width:150px; background:#111; border-radius:10px; overflow:hidden; border:1px solid #333; }
-        .card img { width:100%; height:220px; object-fit:cover; }
-        .btn { display:block; background:red; color:white; text-decoration:none; padding:8px; font-weight:bold; font-size:11px; margin:5px; border-radius:4px; }
+        .nav { padding:15px; background:#111; border-bottom:2px solid red; position:sticky; top:0; z-index:100; }
+        .logo { color:red; font-size:24px; font-weight:bold; }
+        .search { width:80%; padding:12px; margin-top:10px; border-radius:20px; border:none; background:#222; color:white; outline:none; }
+        .row { display:flex; flex-wrap:wrap; padding:15px; justify-content:center; gap:10px; }
+        .card { width:140px; background:#111; border-radius:8px; overflow:hidden; border:1px solid #333; cursor:pointer; }
+        .card img { width:100%; height:200px; object-fit:cover; display:block; }
+        .title { font-size:11px; padding:5px; height:30px; overflow:hidden; }
     </style>
 </head>
 <body>
     <div class="nav">
-        <h2 style="color:red;margin:0;">H.MOVIES</h2>
-        <input type="text" id="s" class="search" placeholder="Type Movie Name & Press Enter...">
+        <div class="logo">H.MOVIES GALLERY</div>
+        <input type="text" id="s" class="search" placeholder="Search Movie Name...">
     </div>
-    <div id="out" class="row">Type "Avatar" and press Enter to start...</div>
+    <div id="out" class="row">Loading Gallery...</div>
 
     <script>
+        // Poster Database (OMDb)
         function load(q) {
             var box = document.getElementById('out');
-            box.innerHTML = 'Searching Global Database...';
-            // Using a very stable API key and search logic
-            fetch("https://www.omdbapi.com/?s=" + encodeURIComponent(q) + "&apikey=61f2249e")
-            .then(r => r.json()).then(data => {
+            var query = q ? q : "2025";
+            
+            fetch("https://www.omdbapi.com/?s=" + encodeURIComponent(query) + "&apikey=61f2249e")
+            .then(res => res.json())
+            .then(data => {
                 box.innerHTML = '';
                 if(data.Search) {
                     data.Search.forEach(m => {
-                        var watch = "https://vidsrc.to/embed/movie/" + m.imdbID;
-                        box.innerHTML += `
-                            <div class="card">
-                                <img src="${m.Poster}">
-                                <div style="font-size:12px;padding:5px;">${m.Title}</div>
-                                <a href="${watch}" target="_blank" class="btn">WATCH / DOWNLOAD</a>
-                            </div>`;
+                        if(m.Poster !== 'N/A') {
+                            // Proxying image to bypass blocks
+                            var imgProxy = "https://images.weserv.nl/?url=" + encodeURIComponent(m.Poster);
+                            
+                            var item = document.createElement('div');
+                            item.className = 'card';
+                            item.innerHTML = `<img src="${imgProxy}"><div class="title">${m.Title}</div>`;
+                            
+                            // Jab poster pe click ho toh watch page pe jaye (Next Step)
+                            item.onclick = function() {
+                                window.location.href = "watch.html?id=" + m.imdbID;
+                            };
+                            
+                            box.appendChild(item);
+                        }
                     });
-                } else { box.innerHTML = "No movies found. Try another name."; }
-            }).catch(e => { box.innerHTML = "Connection Error. Try VPN."; });
+                } else { box.innerHTML = "No Posters Found."; }
+            }).catch(e => { box.innerHTML = "Internet Error. Try VPN."; });
         }
+
         document.getElementById('s').onkeypress = function(e) {
-            if(e.key === 'Enter') load(this.value);
-        }
+            if(e.key === 'Enter') load(this.value.trim());
+        };
+        window.onload = function() { load('Action'); };
     </script>
 </body>
 </html>
