@@ -6,99 +6,19 @@
 <title>H.MOVIES PRO</title>
 
 <style>
-body {
-  margin:0;
-  font-family:sans-serif;
-  background:#000;
-  color:#fff;
-}
-
-.header {
-  padding:15px;
-  font-size:24px;
-  color:#00ff88;
-  font-weight:bold;
-}
-
-.search {
-  width:90%;
-  margin:10px auto;
-  display:block;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  background:#111;
-  color:#fff;
-}
-
-.tabs {
-  display:flex;
-  gap:10px;
-  padding:10px;
-  overflow:auto;
-}
-
-.tab {
-  padding:8px 15px;
-  background:#111;
-  border-radius:20px;
-  cursor:pointer;
-}
-
-.tab.active {
-  background:#00ff88;
-  color:#000;
-}
-
-.grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-  padding:10px;
-}
-
-.card {
-  background:#111;
-  border-radius:10px;
-  overflow:hidden;
-}
-
-.card img {
-  width:100%;
-  height:230px;
-  object-fit:cover;
-}
-
-.title {
-  padding:8px;
-  font-size:14px;
-}
-
-.btns {
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-  padding:8px;
-}
-
-.btn {
-  background:#00ff88;
-  color:#000;
-  padding:8px;
-  text-align:center;
-  border-radius:6px;
-  text-decoration:none;
-}
-
-.load {
-  margin:20px;
-  padding:12px;
-  background:#00ff88;
-  text-align:center;
-  border-radius:10px;
-  color:#000;
-  cursor:pointer;
-}
+body {margin:0;font-family:sans-serif;background:#000;color:#fff;}
+.header {padding:15px;font-size:24px;color:#00ff88;font-weight:bold;}
+.search {width:90%;margin:10px auto;display:block;padding:12px;border-radius:10px;border:none;background:#111;color:#fff;}
+.tabs {display:flex;gap:10px;padding:10px;overflow:auto;}
+.tab {padding:8px 15px;background:#111;border-radius:20px;cursor:pointer;}
+.tab.active {background:#00ff88;color:#000;}
+.grid {display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px;}
+.card {background:#111;border-radius:10px;overflow:hidden;}
+.card img {width:100%;height:230px;object-fit:cover;}
+.title {padding:8px;font-size:14px;}
+.btns {display:flex;flex-direction:column;gap:5px;padding:8px;}
+.btn {background:#00ff88;color:#000;padding:8px;text-align:center;border-radius:6px;text-decoration:none;}
+.load {margin:20px;padding:12px;background:#00ff88;text-align:center;border-radius:10px;color:#000;cursor:pointer;}
 </style>
 </head>
 
@@ -122,22 +42,24 @@ body {
 
 <script>
 
-// ✅ CLEAN DATABASE (no duplicates, no 0 bug)
-const allData = [
+// 🎬 DATA (clean + mixed)
+const data = [
 {t:"Avengers Endgame",c:"movie",img:"https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg"},
 {t:"Joker",c:"movie",img:"https://image.tmdb.org/t/p/w500/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg"},
 {t:"Spider Man No Way Home",c:"movie",img:"https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg"},
+
 {t:"Breaking Bad",c:"series",img:"https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg"},
 {t:"Money Heist",c:"series",img:"https://image.tmdb.org/t/p/w500/reEMJA1uzscCbkpeRJeTT2bjqUp.jpg"},
+{t:"Stranger Things",c:"series",img:"https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg"},
+
 {t:"Attack on Titan",c:"anime",img:"https://image.tmdb.org/t/p/w500/hTP1DtLGFamjfu8WqjnuQdP1n4i.jpg"},
 {t:"Demon Slayer",c:"anime",img:"https://image.tmdb.org/t/p/w500/xUfRZu2mi8jH6SzQEJGP6tjBuYj.jpg"},
+{t:"Naruto",c:"anime",img:"https://image.tmdb.org/t/p/w500/2y98Rn0lXh6b6cK8d1x3pR5Fh5S.jpg"},
+
 {t:"RRR",c:"hindi",img:"https://image.tmdb.org/t/p/w500/ljHw5eIMnki3HekwkKwCCHsRSbH.jpg"},
 {t:"KGF Chapter 2",c:"hindi",img:"https://image.tmdb.org/t/p/w500/khNVygolU0TXCqCqZVdE0RWi8cJ.jpg"},
 {t:"Pathaan",c:"hindi",img:"https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg"}
 ];
-
-// duplicate remove (safety)
-const data = [...new Map(allData.map(i => [i.t, i])).values()];
 
 let shown = 0;
 let cat = "all";
@@ -155,11 +77,26 @@ function show(){
 
   grid.innerHTML = slice.map(m => `
     <div class="card">
-      <img src="${m.img}">
+
+      <img src="${m.img}" 
+      onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+
       <div class="title">${m.t}</div>
+
       <div class="btns">
-        <a class="btn" href="https://www.google.com/search?q=${m.t}+watch" target="_blank">Watch</a>
-        <a class="btn" href="https://www.google.com/search?q=${m.t}+download" target="_blank">Download</a>
+
+        <a class="btn" href="https://vidsrc.to/embed/movie?title=${m.t}" target="_blank">
+        ▶ Watch
+        </a>
+
+        <a class="btn" href="https://archive.org/search?query=${m.t}" target="_blank">
+        ⬇ Download
+        </a>
+
+        <a class="btn" href="https://www.google.com/search?q=${m.t}+hindi+dubbed" target="_blank">
+        🇮🇳 Hindi Dubbed
+        </a>
+
       </div>
     </div>
   `).join("");
@@ -167,10 +104,7 @@ function show(){
 
 function loadMore(){
   shown += 20;
-
-  // shuffle for different movies each time
-  data.sort(()=>Math.random()-0.5);
-
+  data.sort(()=>Math.random()-0.5); // shuffle
   show();
 }
 
