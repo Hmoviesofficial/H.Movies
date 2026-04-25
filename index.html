@@ -43,9 +43,16 @@
             : `https://api.themoviedb.org/3/${path}?api_key=${key}`;
 
         fetch(url)
-        .then(r => r.json())
+        .then(r => {
+            if(!r.ok) throw new Error('API Connection Issue');
+            return r.json();
+        })
         .then(data => {
             box.innerHTML = '';
+            if(!data.results || data.results.length === 0) {
+                box.innerHTML = '<p>No Movies Found</p>';
+                return;
+            }
             data.results.forEach(m => {
                 if(m.poster_path) {
                     const img = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
@@ -58,7 +65,10 @@
                         </div>`;
                 }
             });
-        }).catch(e => { box.innerHTML = '<p>Error! Try Refreshing.</p>'; });
+        }).catch(e => { 
+            box.innerHTML = '<p>Connection Error. Try Browser Refresh.</p>'; 
+            console.log(e);
+        });
     }
 
     document.getElementById('s').onkeypress = (e) => {
