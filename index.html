@@ -3,106 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - MovieBox Edition</title>
+    <title>H.Movies - MovieBox Pro</title>
     <style>
-        body { margin:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#080808; color:white; }
-        .header { padding:15px; background:#111; border-bottom:2px solid #e50914; position:sticky; top:0; z-index:1000; text-align:center; }
-        .logo { color:#e50914; font-size:28px; font-weight:bold; margin-bottom:10px; }
-        .search-bar { width:90%; max-width:500px; padding:12px; border-radius:25px; border:none; background:#222; color:white; outline:none; font-size:15px; }
+        body { margin:0; font-family: 'Segoe UI', Arial, sans-serif; background:#000; color:#fff; }
+        .header { padding:15px; background:#111; border-bottom:3px solid #2ecc71; position:sticky; top:0; z-index:1000; text-align:center; }
+        .logo { color:#2ecc71; font-size:26px; font-weight:bold; text-transform:uppercase; margin-bottom:10px; }
+        .search-bar { width:90%; max-width:500px; padding:12px; border-radius:10px; border:1px solid #333; background:#222; color:#fff; outline:none; }
+        .search-bar:focus { border-color:#2ecc71; }
         
-        /* Categories Style */
+        /* Category Bar */
         .categories { display:flex; overflow-x:auto; padding:15px; gap:10px; white-space:nowrap; scrollbar-width:none; }
-        .cat-btn { background:#1a1a1a; padding:8px 20px; border-radius:20px; border:1px solid #333; color:#bbb; cursor:pointer; font-weight:bold; transition:0.3s; }
-        .cat-btn:hover, .cat-btn.active { background:#e50914; color:white; border-color:#e50914; }
+        .cat-btn { background:#1a1a1a; padding:8px 18px; border-radius:5px; border:1px solid #333; color:#fff; cursor:pointer; font-size:13px; }
+        .cat-btn.active { background:#2ecc71; border-color:#2ecc71; color:#000; font-weight:bold; }
 
-        .container { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:15px; padding:15px; }
-        .movie-card { background:#111; border-radius:10px; overflow:hidden; border:1px solid #222; transition:0.3s; cursor:pointer; }
-        .movie-card:hover { transform: translateY(-5px); border-color:#e50914; }
+        .container { display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:12px; padding:15px; }
+        .movie-card { background:#111; border-radius:8px; overflow:hidden; border:1px solid #222; position:relative; }
         .movie-card img { width:100%; aspect-ratio: 2/3; object-fit:cover; display:block; background:#1a1a1a; }
-        .movie-title { padding:10px; font-size:12px; height:32px; overflow:hidden; font-weight:600; text-align:center; color:#eee; }
-        #status { text-align:center; padding:20px; color:#888; }
+        .movie-title { padding:8px; font-size:11px; height:30px; overflow:hidden; text-align:center; color:#fff; font-weight:bold; }
+        #msg { text-align:center; padding:20px; color:#2ecc71; font-weight:bold; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="logo">H.MOVIES</div>
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search movies, shows...">
+        <div class="logo">H.Movies Pro</div>
+        <input type="text" id="s" class="search-bar" placeholder="Search movies (e.g. Jawan, Joker)...">
     </div>
 
     <div class="categories">
-        <div class="cat-btn active" onclick="loadMovies('Trending')">Trending</div>
-        <div class="cat-btn" onclick="loadMovies('Action')">Action</div>
-        <div class="cat-btn" onclick="loadMovies('Horror')">Horror</div>
-        <div class="cat-btn" onclick="loadMovies('Comedy')">Comedy</div>
-        <div class="cat-btn" onclick="loadMovies('Marvel')">Marvel</div>
-        <div class="cat-btn" onclick="loadMovies('Bollywood')">Bollywood</div>
-        <div class="cat-btn" onclick="loadMovies('Cartoon')">Animation</div>
+        <div class="cat-btn active" onclick="load('2026', this)">Trending</div>
+        <div class="cat-btn" onclick="load('Action', this)">Action</div>
+        <div class="cat-btn" onclick="load('Horror', this)">Horror</div>
+        <div class="cat-btn" onclick="load('Adventure', this)">Adventure</div>
+        <div class="cat-btn" onclick="load('Bollywood', this)">Bollywood</div>
+        <div class="cat-btn" onclick="load('Marvel', this)">Marvel</div>
     </div>
 
-    <div id="status"></div>
-    <div id="movieGrid" class="container"></div>
+    <div id="msg"></div>
+    <div id="out" class="container"></div>
 
     <script>
-        const API_KEY = '61f2249e'; // OMDb API
+        const API_KEY = '61f2249e';
 
-        async function loadMovies(query) {
-            const grid = document.getElementById('movieGrid');
-            const status = document.getElementById('status');
+        async function load(q, btn) {
+            const grid = document.getElementById('out');
+            const msg = document.getElementById('msg');
             
-            status.innerText = `Loading ${query}...`;
+            // UI Update
+            if(btn) {
+                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            
+            msg.innerText = 'Syncing Posters...';
             grid.innerHTML = '';
 
             try {
-                const response = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(query)}&apikey=${API_KEY}`);
-                const data = await response.json();
+                const res = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(q)}&apikey=${API_KEY}`);
+                const data = await res.json();
 
                 if (data.Search) {
-                    status.innerText = '';
-                    data.Search.forEach(movie => {
-                        if (movie.Poster !== 'N/A') {
-                            // Using Image Proxy for No-VPN access
-                            const safeImg = `https://images.weserv.nl/?url=${encodeURIComponent(movie.Poster)}`;
+                    msg.innerText = '';
+                    data.Search.forEach(m => {
+                        if (m.Poster !== 'N/A') {
+                            // Enhanced Proxy to bypass ISP blocking
+                            const safeImg = `https://images.weserv.nl/?url=${encodeURIComponent(m.Poster)}&w=300&h=450`;
                             
                             const card = document.createElement('div');
                             card.className = 'movie-card';
                             card.innerHTML = `
-                                <img src="${safeImg}" alt="${movie.Title}">
-                                <div class="movie-title">${movie.Title}</div>
+                                <img src="${safeImg}" alt="${m.Title}">
+                                <div class="movie-title">${m.Title}</div>
                             `;
-                            // Link to Watch page (which we'll make tomorrow)
-                            card.onclick = () => alert("Title: " + movie.Title + "\nWatch/Download links will be added tomorrow!");
+                            // Redirect to watch page (we'll link this later)
+                            card.onclick = () => alert("Selected: " + m.Title);
                             grid.appendChild(card);
                         }
                     });
                 } else {
-                    status.innerText = 'No movies found in this category.';
+                    msg.innerText = 'No Results Found.';
                 }
-            } catch (error) {
-                status.innerText = 'Connection error. Please check internet.';
+            } catch (e) {
+                msg.innerText = 'Connection Error. Try again.';
             }
         }
 
-        // Search logic
-        document.getElementById('searchInput').onkeypress = function(e) {
+        document.getElementById('s').onkeypress = function(e) {
             if(e.key === 'Enter') {
-                loadMovies(this.value.trim());
-                // Remove active class from buttons
+                load(this.value.trim());
                 document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             }
         };
 
-        // Category button active state
-        document.querySelectorAll('.cat-btn').forEach(btn => {
-            btn.onclick = function() {
-                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                loadMovies(this.innerText);
-            }
-        });
-
-        // Initial Load
-        window.onload = () => loadMovies('2025');
+        // Open hot and trending on entry
+        window.onload = () => load('2026');
     </script>
 </body>
 </html>
