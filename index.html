@@ -1,267 +1,176 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>H.Movies Pro</title>
+<title>H.MOVIES PRO</title>
 
 <style>
 body {
   margin: 0;
   font-family: Arial;
-  background: #0f0f0f;
+  background: #0d0d0d;
   color: white;
 }
 
-/* HEADER */
-.header {
+/* Header */
+header {
   display: flex;
   justify-content: space-between;
-  padding: 10px;
-  background: #141414;
+  padding: 15px;
+  background: #111;
 }
 
-.logo {
+h1 {
   color: #00ff88;
   font-size: 20px;
-  font-weight: bold;
 }
 
 input {
-  background: #1c1c1c;
-  border: none;
   padding: 8px;
-  color: white;
   border-radius: 5px;
+  border: none;
 }
 
-/* SLIDER */
-.slider {
-  overflow-x: auto;
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-}
-
-.slide {
-  min-width: 85%;
-  position: relative;
-}
-
-.slide img {
-  width: 100%;
-  border-radius: 10px;
-}
-
-.slide h2 {
-  position: absolute;
-  bottom: 20px;
-  left: 15px;
-}
-
-/* TRENDING */
-.section {
-  padding: 10px;
-}
-
+/* Movies */
 .movies {
   display: flex;
   overflow-x: auto;
   gap: 10px;
+  padding: 10px;
 }
 
-.movie-card {
-  min-width: 140px;
-  background: #1a1a1a;
-  border-radius: 10px;
-  padding: 5px;
+.movie {
+  min-width: 120px;
+  cursor: pointer;
 }
 
-.movie-card img {
+.movie img {
   width: 100%;
   border-radius: 10px;
 }
 
-/* POPUP */
-#optionsBox {
+/* Popup */
+.popup {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0,0,0,0.9);
-  display: none;
-  justify-content: center;
-  align-items: center;
 }
 
-.options-content {
-  background: #111;
+.popup-content {
+  background: #222;
   padding: 20px;
-  border-radius: 10px;
+  margin: 100px auto;
   width: 80%;
   text-align: center;
+  border-radius: 10px;
 }
 
-.options-content button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
+button {
+  margin: 10px;
+  padding: 10px;
   border: none;
-  border-radius: 5px;
-  background: linear-gradient(45deg, #00ff88, #00ccff);
-}
-
-.options-content span {
-  position: absolute;
-  right: 20px;
-  top: 10px;
+  background: #00ff88;
   cursor: pointer;
 }
 
-/* PLAYER */
-#player {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: black;
-  display: none;
-}
-
-#player iframe {
-  width: 100%;
-  height: 100%;
-}
-
-#player span {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  color: white;
-  font-size: 25px;
+#close {
+  float: right;
+  cursor: pointer;
+  color: red;
 }
 </style>
+
 </head>
 
 <body>
 
-<div class="header">
-  <div class="logo">H.MOVIES PRO</div>
-  <input type="text" placeholder="Search..." onkeyup="searchMovie(this.value)">
-</div>
+<header>
+  <h1>H.MOVIES PRO</h1>
+  <input type="text" placeholder="Search movies...">
+</header>
 
-<!-- SLIDER -->
-<div class="slider" id="slider"></div>
+<section>
+  <h2 style="padding-left:10px;">🔥 Trending</h2>
+  <div id="trending" class="movies"></div>
+</section>
 
-<!-- TRENDING -->
-<div class="section">
-  <h2>🔥 Trending</h2>
-  <div class="movies" id="movies"></div>
-</div>
-
-<!-- OPTIONS -->
-<div id="optionsBox">
-  <div class="options-content">
-    <span onclick="closeOptions()">✖</span>
-    <h2 id="movieTitle"></h2>
-    <button onclick="watchTrailer()">▶ Watch Trailer</button>
-    <button onclick="findMovie()">🔍 Find Movie</button>
+<!-- Popup -->
+<div id="popup" class="popup">
+  <div class="popup-content">
+    <span id="close">X</span>
+    <h3 id="movieTitle"></h3>
+    <button id="watchTrailer">▶ Watch Trailer</button>
+    <button id="findMovie">🔍 Find Movie</button>
   </div>
 </div>
 
-<!-- PLAYER -->
-<div id="player">
-  <span onclick="closePlayer()">✖</span>
-  <iframe id="videoFrame"></iframe>
-</div>
-
 <script>
-const API_KEY = "YOUR_API_KEY";
+const API_KEY = "f409489a42d61f514484fa959f76fec7";
+const BASE_URL = "https://api.themoviedb.org/3";
+const IMG_URL = "https://image.tmdb.org/t/p/w500";
+
+const trendingContainer = document.getElementById("trending");
+const popup = document.getElementById("popup");
+const closeBtn = document.getElementById("close");
+const movieTitle = document.getElementById("movieTitle");
 
 let currentMovie = "";
 
-/* FETCH MOVIES */
-async function loadMovies() {
-  let res = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}`);
-  let data = await res.json();
+// Fetch Trending Movies
+async function getTrending() {
+  const res = await fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`);
+  const data = await res.json();
+  showMovies(data.results);
+}
 
-  let slider = document.getElementById("slider");
-  let movies = document.getElementById("movies");
+// Show Movies
+function showMovies(movies) {
+  trendingContainer.innerHTML = "";
 
-  data.results.forEach((m, i) => {
+  movies.forEach(movie => {
+    if (!movie.poster_path) return;
 
-    // SLIDER (first 5)
-    if (i < 5) {
-      slider.innerHTML += `
-      <div class="slide" onclick="openOptions('${m.title}')">
-        <img src="https://image.tmdb.org/t/p/w500${m.backdrop_path}">
-        <h2>${m.title}</h2>
-      </div>`;
-    }
+    const div = document.createElement("div");
+    div.classList.add("movie");
 
-    // TRENDING LIST
-    movies.innerHTML += `
-    <div class="movie-card" onclick="openOptions('${m.title}')">
-      <img src="https://image.tmdb.org/t/p/w500${m.poster_path}">
-      <p>${m.title}</p>
-    </div>`;
+    div.innerHTML = `
+      <img src="${IMG_URL + movie.poster_path}" />
+      <p>${movie.title}</p>
+    `;
+
+    div.onclick = () => openPopup(movie.title);
+
+    trendingContainer.appendChild(div);
   });
 }
 
-/* SEARCH */
-async function searchMovie(q) {
-  if (q.length < 3) return;
-
-  let res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${q}`);
-  let data = await res.json();
-
-  let movies = document.getElementById("movies");
-  movies.innerHTML = "";
-
-  data.results.forEach(m => {
-    movies.innerHTML += `
-    <div class="movie-card" onclick="openOptions('${m.title}')">
-      <img src="https://image.tmdb.org/t/p/w500${m.poster_path}">
-      <p>${m.title}</p>
-    </div>`;
-  });
-}
-
-/* OPTIONS */
-function openOptions(title) {
+// Open Popup
+function openPopup(title) {
   currentMovie = title;
-  document.getElementById("movieTitle").innerText = title;
-  document.getElementById("optionsBox").style.display = "flex";
+  movieTitle.innerText = title;
+  popup.style.display = "block";
 }
 
-function closeOptions() {
-  document.getElementById("optionsBox").style.display = "none";
-}
+// Close Popup
+closeBtn.onclick = () => popup.style.display = "none";
 
-/* TRAILER */
-function watchTrailer() {
-  window.open("https://www.youtube.com/results?search_query=" + currentMovie + " trailer");
-}
+// Trailer Button
+document.getElementById("watchTrailer").onclick = () => {
+  window.open(`https://www.youtube.com/results?search_query=${currentMovie} trailer`);
+};
 
-/* FIND MOVIE */
-function findMovie() {
-  window.open("https://www.google.com/search?q=" + currentMovie + " watch online");
-}
+// Find Movie Button
+document.getElementById("findMovie").onclick = () => {
+  window.open(`https://www.google.com/search?q=${currentMovie} full movie`);
+};
 
-/* PLAYER */
-function playMovie(link) {
-  document.getElementById("player").style.display = "block";
-  document.getElementById("videoFrame").src = link;
-}
-
-function closePlayer() {
-  document.getElementById("player").style.display = "none";
-  document.getElementById("videoFrame").src = "";
-}
-
-/* INIT */
-loadMovies();
+// Load Movies
+getTrending();
 </script>
 
 </body>
