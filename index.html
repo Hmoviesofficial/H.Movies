@@ -5,76 +5,95 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>H.Movies Pro</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
 <style>
 body{margin:0;background:#000;color:#fff;font-family:sans-serif;}
 .nav{padding:15px;background:#111;}
 .logo{color:#2ecc71;font-size:24px;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;padding:15px;}
+
+.card{border-radius:10px;overflow:hidden;background:#111;}
 .card img{width:100%;height:220px;object-fit:cover;}
+
 .overlay{padding:10px;}
 .btn{background:#2ecc71;color:#000;padding:5px;border-radius:5px;text-decoration:none;}
-.admin{position:fixed;bottom:10px;right:10px;background:#2ecc71;padding:10px;border-radius:10px;}
-.panel{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px;}
-input{width:100%;margin:5px 0;padding:10px;background:#222;color:#fff;border:none;}
+
+.admin{
+position:fixed;bottom:15px;right:15px;
+background:#2ecc71;color:#000;
+padding:12px;border-radius:10px;
+cursor:pointer;
+}
+
+.panel{
+display:none;
+position:fixed;
+top:50%;left:50%;
+transform:translate(-50%,-50%);
+background:#111;padding:20px;
+border-radius:10px;width:90%;
+z-index:9999;
+}
+
+.panel.show{display:block;}
+
+input{
+width:100%;margin:5px 0;padding:10px;
+background:#222;color:#fff;border:none;
+}
 </style>
 </head>
 
 <body>
 
-<div class="nav"><div class="logo">H.MOVIES PRO</div></div>
+<div class="nav">
+<div class="logo">H.MOVIES PRO</div>
+</div>
+
 <div id="grid" class="grid"></div>
 
 <div class="admin" onclick="openPanel()">+ Add</div>
 
 <div id="panel" class="panel">
+<h3>Add Movie</h3>
 <input id="title" placeholder="Title">
 <input id="img" placeholder="Poster URL">
 <input id="watch" placeholder="Watch Link">
 <input id="download" placeholder="Download Link">
-<button onclick="addMovie()">Save</button>
+<button onclick="save()">Save</button>
+<button onclick="closePanel()">Close</button>
 </div>
 
-<script type="module">
+<script>
 
-// 🔑 APNA FIREBASE CONFIG YAHA PASTE KARO
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_ID"
-};
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+let movies = JSON.parse(localStorage.getItem("movies")||"[]");
 
 function openPanel(){
- document.getElementById('panel').style.display='block';
+ document.getElementById('panel').classList.add('show');
 }
 
-async function addMovie(){
- await addDoc(collection(db,"movies"),{
+function closePanel(){
+ document.getElementById('panel').classList.remove('show');
+}
+
+function save(){
+ const m = {
   title: title.value,
   img: img.value,
   watch: watch.value,
   download: download.value
- });
- alert("Added!");
+ };
+
+ movies.push(m);
+ localStorage.setItem("movies",JSON.stringify(movies));
  location.reload();
 }
 
-async function loadMovies(){
- const querySnapshot = await getDocs(collection(db,"movies"));
+function load(){
+ movies.forEach(m=>{
+  const card=document.createElement('div');
+  card.className="card";
 
- querySnapshot.forEach(doc=>{
-  const m = doc.data();
-
-  const card = document.createElement('div');
-  card.innerHTML = `
+  card.innerHTML=`
   <img src="${m.img}">
   <div class="overlay">
     <div>${m.title}</div>
@@ -87,7 +106,7 @@ async function loadMovies(){
  });
 }
 
-loadMovies();
+load();
 
 </script>
 
