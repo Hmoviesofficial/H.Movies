@@ -30,9 +30,9 @@
             var box = document.getElementById('out');
             box.innerHTML = 'Searching...';
             
-            var url = q 
-                ? "https://api.themoviedb.org/3/search/movie?api_key=" + k + "&query=" + encodeURIComponent(q)
-                : "https://api.themoviedb.org/3/discover/movie?api_key=" + k + "&sort_by=popularity.desc";
+            var url = q  ?
+                  "https://api.themoviedb.org/3/search/movie?api_key=" + k + "&query=" + encodeURIComponent(q)
+                  "https://api.themoviedb.org/3/discover/movie?api_key=" + k + "&sort_by=popularity.desc";
             
             fetch(url).then(function(res) { return res.json(); }).then(function(data) {
                 box.innerHTML = '';
