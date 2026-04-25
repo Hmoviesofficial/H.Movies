@@ -7,27 +7,8 @@
 
 <style>
 body{margin:0;background:#000;color:#fff;font-family:sans-serif;}
-
-.nav{
-padding:15px;background:#111;position:sticky;top:0;z-index:10;
-}
-
+.nav{padding:15px;background:#111;}
 .logo{color:#2ecc71;font-size:24px;font-weight:bold;}
-
-.search{
-width:100%;padding:10px;margin-top:10px;
-background:#222;border:none;border-radius:6px;color:#fff;
-}
-
-.cats{
-display:flex;gap:10px;margin-top:10px;overflow-x:auto;
-}
-
-.c-btn{
-padding:8px 15px;background:#222;border-radius:20px;cursor:pointer;
-}
-
-.c-btn.active{background:#2ecc71;color:#000;}
 
 .grid{
 display:grid;
@@ -36,33 +17,20 @@ gap:15px;padding:15px;
 }
 
 .card{
-position:relative;border-radius:10px;overflow:hidden;
-transition:.3s;
+background:#111;border-radius:10px;overflow:hidden;
 }
 
 .card img{
 width:100%;height:220px;object-fit:cover;
 }
 
-.card:hover{transform:scale(1.05);}
-
-.overlay{
-position:absolute;bottom:0;width:100%;
-background:linear-gradient(transparent,black);
-padding:10px;
-}
+.overlay{padding:10px;}
 
 .btn{
 background:#2ecc71;color:#000;
-padding:5px 8px;border-radius:5px;
-font-size:11px;text-decoration:none;
-margin-right:5px;
-}
-
-.load{
-width:90%;margin:20px auto;
-display:block;padding:12px;
-background:#2ecc71;border:none;border-radius:10px;
+padding:5px;border-radius:5px;
+text-decoration:none;font-size:12px;
+display:inline-block;margin-top:5px;
 }
 </style>
 </head>
@@ -71,106 +39,60 @@ background:#2ecc71;border:none;border-radius:10px;
 
 <div class="nav">
 <div class="logo">H.MOVIES PRO</div>
-
-<input id="search" class="search" placeholder="Search Movies, Anime, Series...">
-
-<div class="cats">
-<div class="c-btn active" onclick="setType('movie', this)">Movies</div>
-<div class="c-btn" onclick="setType('tv', this)">Series</div>
-<div class="c-btn" onclick="setAnime(this)">Anime</div>
-</div>
 </div>
 
 <div id="grid" class="grid"></div>
-<button class="load" onclick="loadMore()">Load More</button>
 
 <script>
-const API_KEY = "YOUR_API_KEY";
 
-let page = 1;
-let type = "movie";
-let query = "";
-
-function setType(t, btn){
- type = t;
- query = "";
- page = 1;
- document.getElementById('grid').innerHTML="";
- setActive(btn);
- load();
+// 🔥 READY MOVIES DATA (AUTO SHOW)
+const movies = [
+{
+title:"Avengers Endgame",
+img:"https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
+id:"tt4154796"
+},
+{
+title:"Joker",
+img:"https://image.tmdb.org/t/p/w500/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg",
+id:"tt7286456"
+},
+{
+title:"Spider Man No Way Home",
+img:"https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg",
+id:"tt10872600"
+},
+{
+title:"Demon Slayer",
+img:"https://image.tmdb.org/t/p/w500/6QxapA4o9Yp1e6tZ1HtV6nRvWmv.jpg",
+id:"tt9335498"
+},
+{
+title:"Money Heist",
+img:"https://image.tmdb.org/t/p/w500/reEMJA1uzscCbkpeRJeTT2bjqUp.jpg",
+id:"tt6468322"
 }
+];
 
-function setAnime(btn){
- type = "tv";
- query = "anime";
- page = 1;
- document.getElementById('grid').innerHTML="";
- setActive(btn);
- load();
-}
+// 🔥 RENDER
+movies.forEach(m=>{
+ const watch = `https://vidsrc.me/embed/movie?imdb=${m.id}`;
 
-function setActive(btn){
- document.querySelectorAll('.c-btn').forEach(b=>b.classList.remove('active'));
- btn.classList.add('active');
-}
+ const card = document.createElement('div');
+ card.className="card";
 
-async function load(){
+ card.innerHTML=`
+ <img src="${m.img}">
+ <div class="overlay">
+   <div>${m.title}</div>
+   <a href="${watch}" target="_blank" class="btn">Watch</a>
+   <a href="${watch}" target="_blank" class="btn">Download</a>
+ </div>
+ `;
 
- let url;
-
- if(query){
-  url = `https://api.themoviedb.org/3/search/${type}?query=${query}&page=${page}&api_key=${API_KEY}`;
- } else {
-  url = `https://api.themoviedb.org/3/discover/${type}?primary_release_date.gte=2010-01-01&sort_by=popularity.desc&page=${page}&api_key=${API_KEY}`;
- }
-
- try{
-  const res = await fetch(url);
-  const data = await res.json();
-
-  data.results.forEach(m=>{
-   if(!m.poster_path) return;
-
-   const img = "https://image.tmdb.org/t/p/w500"+m.poster_path;
-   const title = m.title || m.name;
-
-   const watch = `https://vidsrc.me/embed/${type}/${m.id}`;
-
-   const card = document.createElement('div');
-   card.className="card";
-
-   card.innerHTML = `
-   <img src="${img}">
-   <div class="overlay">
-     <div>${title}</div>
-     <a href="${watch}" target="_blank" class="btn">Watch</a>
-     <a href="${watch}" target="_blank" class="btn">Download</a>
-   </div>
-   `;
-
-   document.getElementById('grid').appendChild(card);
-  });
-
- }catch{
-  document.getElementById('grid').innerHTML="<p style='color:red'>Error loading</p>";
- }
-}
-
-function loadMore(){
- page++;
- load();
-}
-
-document.getElementById('search').addEventListener('keypress', e=>{
- if(e.key==="Enter"){
-  query = e.target.value;
-  page = 1;
-  document.getElementById('grid').innerHTML="";
-  load();
- }
+ document.getElementById('grid').appendChild(card);
 });
 
-window.onload = load;
 </script>
 
 </body>
