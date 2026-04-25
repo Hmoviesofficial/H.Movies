@@ -7,38 +7,62 @@
 
 <style>
 body{margin:0;background:#000;color:#fff;font-family:sans-serif;}
-.nav{padding:15px;background:#111;}
-.logo{color:#2ecc71;font-size:24px;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;padding:15px;}
 
-.card{border-radius:10px;overflow:hidden;background:#111;}
-.card img{width:100%;height:220px;object-fit:cover;}
+.nav{
+padding:15px;background:#111;position:sticky;top:0;z-index:10;
+}
 
-.overlay{padding:10px;}
-.btn{background:#2ecc71;color:#000;padding:5px;border-radius:5px;text-decoration:none;}
+.logo{color:#2ecc71;font-size:24px;font-weight:bold;}
 
-.admin{
-position:fixed;bottom:15px;right:15px;
+.search{
+width:100%;padding:10px;margin-top:10px;
+background:#222;border:none;border-radius:6px;color:#fff;
+}
+
+.cats{
+display:flex;gap:10px;margin-top:10px;overflow-x:auto;
+}
+
+.c-btn{
+padding:8px 15px;background:#222;border-radius:20px;cursor:pointer;
+}
+
+.c-btn.active{background:#2ecc71;color:#000;}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+gap:15px;padding:15px;
+}
+
+.card{
+position:relative;border-radius:10px;overflow:hidden;
+transition:.3s;
+}
+
+.card img{
+width:100%;height:220px;object-fit:cover;
+}
+
+.card:hover{transform:scale(1.05);}
+
+.overlay{
+position:absolute;bottom:0;width:100%;
+background:linear-gradient(transparent,black);
+padding:10px;
+}
+
+.btn{
 background:#2ecc71;color:#000;
-padding:12px;border-radius:10px;
-cursor:pointer;
+padding:5px 8px;border-radius:5px;
+font-size:11px;text-decoration:none;
+margin-right:5px;
 }
 
-.panel{
-display:none;
-position:fixed;
-top:50%;left:50%;
-transform:translate(-50%,-50%);
-background:#111;padding:20px;
-border-radius:10px;width:90%;
-z-index:9999;
-}
-
-.panel.show{display:block;}
-
-input{
-width:100%;margin:5px 0;padding:10px;
-background:#222;color:#fff;border:none;
+.load{
+width:90%;margin:20px auto;
+display:block;padding:12px;
+background:#2ecc71;border:none;border-radius:10px;
 }
 </style>
 </head>
@@ -47,67 +71,106 @@ background:#222;color:#fff;border:none;
 
 <div class="nav">
 <div class="logo">H.MOVIES PRO</div>
+
+<input id="search" class="search" placeholder="Search Movies, Anime, Series...">
+
+<div class="cats">
+<div class="c-btn active" onclick="setType('movie', this)">Movies</div>
+<div class="c-btn" onclick="setType('tv', this)">Series</div>
+<div class="c-btn" onclick="setAnime(this)">Anime</div>
+</div>
 </div>
 
 <div id="grid" class="grid"></div>
-
-<div class="admin" onclick="openPanel()">+ Add</div>
-
-<div id="panel" class="panel">
-<h3>Add Movie</h3>
-<input id="title" placeholder="Title">
-<input id="img" placeholder="Poster URL">
-<input id="watch" placeholder="Watch Link">
-<input id="download" placeholder="Download Link">
-<button onclick="save()">Save</button>
-<button onclick="closePanel()">Close</button>
-</div>
+<button class="load" onclick="loadMore()">Load More</button>
 
 <script>
+const API_KEY = "YOUR_API_KEY";
 
-let movies = JSON.parse(localStorage.getItem("movies")||"[]");
+let page = 1;
+let type = "movie";
+let query = "";
 
-function openPanel(){
- document.getElementById('panel').classList.add('show');
+function setType(t, btn){
+ type = t;
+ query = "";
+ page = 1;
+ document.getElementById('grid').innerHTML="";
+ setActive(btn);
+ load();
 }
 
-function closePanel(){
- document.getElementById('panel').classList.remove('show');
+function setAnime(btn){
+ type = "tv";
+ query = "anime";
+ page = 1;
+ document.getElementById('grid').innerHTML="";
+ setActive(btn);
+ load();
 }
 
-function save(){
- const m = {
-  title: title.value,
-  img: img.value,
-  watch: watch.value,
-  download: download.value
- };
-
- movies.push(m);
- localStorage.setItem("movies",JSON.stringify(movies));
- location.reload();
+function setActive(btn){
+ document.querySelectorAll('.c-btn').forEach(b=>b.classList.remove('active'));
+ btn.classList.add('active');
 }
 
-function load(){
- movies.forEach(m=>{
-  const card=document.createElement('div');
-  card.className="card";
+async function load(){
 
-  card.innerHTML=`
-  <img src="${m.img}">
-  <div class="overlay">
-    <div>${m.title}</div>
-    <a href="${m.watch}" class="btn">Watch</a>
-    <a href="${m.download}" class="btn">Download</a>
-  </div>
-  `;
+ let url;
 
-  document.getElementById('grid').appendChild(card);
- });
+ if(query){
+  url = `https://api.themoviedb.org/3/search/${type}?query=${query}&page=${page}&api_key=${API_KEY}`;
+ } else {
+  url = `https://api.themoviedb.org/3/discover/${type}?primary_release_date.gte=2010-01-01&sort_by=popularity.desc&page=${page}&api_key=${API_KEY}`;
+ }
+
+ try{
+  const res = await fetch(url);
+  const data = await res.json();
+
+  data.results.forEach(m=>{
+   if(!m.poster_path) return;
+
+   const img = "https://image.tmdb.org/t/p/w500"+m.poster_path;
+   const title = m.title || m.name;
+
+   const watch = `https://vidsrc.me/embed/${type}/${m.id}`;
+
+   const card = document.createElement('div');
+   card.className="card";
+
+   card.innerHTML = `
+   <img src="${img}">
+   <div class="overlay">
+     <div>${title}</div>
+     <a href="${watch}" target="_blank" class="btn">Watch</a>
+     <a href="${watch}" target="_blank" class="btn">Download</a>
+   </div>
+   `;
+
+   document.getElementById('grid').appendChild(card);
+  });
+
+ }catch{
+  document.getElementById('grid').innerHTML="<p style='color:red'>Error loading</p>";
+ }
 }
 
-load();
+function loadMore(){
+ page++;
+ load();
+}
 
+document.getElementById('search').addEventListener('keypress', e=>{
+ if(e.key==="Enter"){
+  query = e.target.value;
+  page = 1;
+  document.getElementById('grid').innerHTML="";
+  load();
+ }
+});
+
+window.onload = load;
 </script>
 
 </body>
