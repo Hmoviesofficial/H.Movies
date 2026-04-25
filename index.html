@@ -3,68 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - World Cinema</title>
+    <title>H.Movies - Official</title>
     <style>
-        body { margin:0; font-family:sans-serif; background:#050505; color:white; text-align:center; }
-        .nav { padding:20px; background:#111; border-bottom:3px solid red; position:sticky; top:0; z-index:100; }
-        .logo { color:red; font-size:28px; font-weight:bold; }
-        .search { width:85%; padding:15px; margin-top:15px; border-radius:30px; border:none; background:#222; color:white; outline:none; }
-        .row { display:flex; flex-wrap:wrap; padding:20px; gap:15px; justify-content:center; }
-        .card { width:160px; background:#111; border-radius:12px; overflow:hidden; border:1px solid #333; }
-        .card img { width:100%; height:240px; object-fit:cover; background:#222; }
-        .title { font-size:13px; padding:10px; height:35px; overflow:hidden; font-weight:bold; }
-        .btn { display:block; background:red; color:white; text-decoration:none; padding:10px; font-weight:bold; font-size:12px; margin:5px; border-radius:5px; }
-        .btn-dl { background:white; color:black; }
+        body { margin:0; font-family:sans-serif; background:#000; color:white; text-align:center; }
+        .nav { padding:20px; background:#111; border-bottom:3px solid red; }
+        .search { width:80%; padding:15px; margin-top:10px; border-radius:25px; border:none; outline:none; background:#222; color:white; }
+        .row { display:flex; flex-wrap:wrap; padding:20px; gap:10px; justify-content:center; }
+        .card { width:150px; background:#111; border-radius:10px; overflow:hidden; border:1px solid #333; }
+        .card img { width:100%; height:220px; object-fit:cover; }
+        .btn { display:block; background:red; color:white; text-decoration:none; padding:8px; font-weight:bold; font-size:11px; margin:5px; border-radius:4px; }
     </style>
 </head>
 <body>
     <div class="nav">
-        <div class="logo">H.MOVIES</div>
-        <input type="text" id="s" class="search" placeholder="Search Bollywood or Hollywood (e.g. Jawan, Avatar)...">
+        <h2 style="color:red;margin:0;">H.MOVIES</h2>
+        <input type="text" id="s" class="search" placeholder="Type Movie Name & Press Enter...">
     </div>
-    <div id="out" class="row">Type movie name and press Enter...</div>
+    <div id="out" class="row">Type "Avatar" and press Enter to start...</div>
 
     <script>
-        // Multiple Backup Keys and Proxy Logic
         function load(q) {
             var box = document.getElementById('out');
-            box.innerHTML = 'Connecting to Global Servers...';
-            var query = q ? q : "2024";
-            
-            // Using OMDb for better connectivity in Pakistan
-            fetch("https://www.omdbapi.com/?s=" + encodeURIComponent(query) + "&apikey=61f2249e")
-            .then(res => res.json())
-            .then(data => {
+            box.innerHTML = 'Searching Global Database...';
+            // Using a very stable API key and search logic
+            fetch("https://www.omdbapi.com/?s=" + encodeURIComponent(q) + "&apikey=61f2249e")
+            .then(r => r.json()).then(data => {
                 box.innerHTML = '';
                 if(data.Search) {
                     data.Search.forEach(m => {
-                        if(m.Poster !== 'N/A') {
-                            // Watch & Download Servers
-                            var watch = "https://vidsrc.me/embed/movie/" + m.imdbID;
-                            var dl = "https://www.2embed.cc/embed/" + m.imdbID;
-                            
-                            var item = document.createElement('div');
-                            item.className = 'card';
-                            item.innerHTML = `
+                        var watch = "https://vidsrc.to/embed/movie/" + m.imdbID;
+                        box.innerHTML += `
+                            <div class="card">
                                 <img src="${m.Poster}">
-                                <div class="title">${m.Title}</div>
-                                <a href="${watch}" target="_blank" class="btn">WATCH ONLINE</a>
-                                <a href="${dl}" target="_blank" class="btn btn-dl">DOWNLOAD</a>
-                            `;
-                            box.appendChild(item);
-                        }
+                                <div style="font-size:12px;padding:5px;">${m.Title}</div>
+                                <a href="${watch}" target="_blank" class="btn">WATCH / DOWNLOAD</a>
+                            </div>`;
                     });
-                } else {
-                    box.innerHTML = 'Movie not found. Try another spelling.';
-                }
-            })
-            .catch(e => { box.innerHTML = 'Server Busy. Use Search Box.'; });
+                } else { box.innerHTML = "No movies found. Try another name."; }
+            }).catch(e => { box.innerHTML = "Connection Error. Try VPN."; });
         }
-
         document.getElementById('s').onkeypress = function(e) {
-            if(e.key === 'Enter') load(this.value.trim());
-        };
-        window.onload = function() { load('Action'); };
+            if(e.key === 'Enter') load(this.value);
+        }
     </script>
 </body>
 </html>
