@@ -6,28 +6,54 @@
 
 <style>
 body{margin:0;background:#000;color:#fff;font-family:sans-serif}
+
 .nav{padding:15px;background:#111;position:sticky;top:0}
 .logo{color:#2ecc71;font-size:24px;font-weight:bold}
-.search{width:100%;padding:10px;margin-top:10px;background:#222;border:none;color:#fff}
 
-.cats{display:flex;gap:10px;margin-top:10px;overflow-x:auto}
-.cats button{padding:8px 15px;border:none;border-radius:20px;background:#222;color:#fff}
-.cats button.active{background:#2ecc71;color:#000}
+.search{
+width:100%;padding:10px;margin-top:10px;
+background:#222;border:none;color:#fff;border-radius:8px
+}
+
+.cats{
+display:flex;gap:10px;margin-top:10px;overflow-x:auto
+}
+
+.cats button{
+padding:8px 15px;border:none;border-radius:20px;
+background:#222;color:#fff;cursor:pointer
+}
+
+.cats button.active{
+background:#2ecc71;color:#000
+}
 
 .grid{
 display:grid;
 grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-gap:10px;padding:10px;
+gap:10px;padding:10px
 }
 
-.card{background:#111;border-radius:10px;overflow:hidden}
-.card img{width:100%;height:220px;object-fit:cover}
+.card{
+background:#111;border-radius:10px;overflow:hidden
+}
+
+.card img{
+width:100%;height:200px;object-fit:cover
+}
+
 .title{padding:6px;font-size:13px}
 
 .btn{
 display:block;background:#2ecc71;color:#000;
-text-align:center;padding:5px;margin:5px;
-text-decoration:none;border-radius:5px;font-size:12px;
+text-align:center;padding:6px;margin:5px;
+text-decoration:none;border-radius:5px;font-size:12px
+}
+
+.load{
+background:#2ecc71;color:#000;
+padding:12px;margin:15px;border:none;
+width:90%;border-radius:8px;font-size:14px
 }
 </style>
 </head>
@@ -40,31 +66,35 @@ text-decoration:none;border-radius:5px;font-size:12px;
 <input id="search" class="search" placeholder="Search movies...">
 
 <div class="cats">
-<button onclick="setCat('all')" class="active">All</button>
-<button onclick="setCat('movie')">Movies</button>
-<button onclick="setCat('series')">Series</button>
-<button onclick="setCat('anime')">Anime</button>
-<button onclick="setCat('hindi')">Hindi</button>
+<button class="active" onclick="setCat('all',this)">All</button>
+<button onclick="setCat('movie',this)">Movies</button>
+<button onclick="setCat('series',this)">Series</button>
+<button onclick="setCat('anime',this)">Anime</button>
+<button onclick="setCat('hindi',this)">Hindi</button>
 </div>
 </div>
 
 <div id="grid" class="grid"></div>
 
+<center>
+<button class="load" onclick="loadMore()">Load More</button>
+</center>
+
 <script>
 
-// 🎬 REAL MOVIE LIST
+// 🎬 BASE DATA
 const base = [
-{t:"Avengers Endgame",c:"movie",img:"https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg",id:"tt4154796"},
-{t:"Joker",c:"movie",img:"https://image.tmdb.org/t/p/w500/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg",id:"tt7286456"},
-{t:"KGF Chapter 2",c:"hindi",img:"https://image.tmdb.org/t/p/w500/ltHlJwvxKv7d0ooCiKSAvfwV9tX.jpg",id:"tt10698680"},
-{t:"RRR",c:"hindi",img:"https://image.tmdb.org/t/p/w500/luoKpgVwi1E5nQsi7W0UuKHu2Rq.jpg",id:"tt8178634"},
-{t:"Money Heist",c:"series",img:"https://image.tmdb.org/t/p/w500/reEMJA1uzscCbkpeRJeTT2bjqUp.jpg",id:"tt6468322"},
-{t:"Breaking Bad",c:"series",img:"https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",id:"tt0903747"},
-{t:"Demon Slayer",c:"anime",img:"https://image.tmdb.org/t/p/w500/xUfRZu2mi8jH6SzQEJGP6tjBuYj.jpg",id:"tt9335498"},
-{t:"Attack on Titan",c:"anime",img:"https://image.tmdb.org/t/p/w500/hTP1DtLGFamjfu8WqjnuQdP1n4i.jpg",id:"tt2560140"}
+{t:"Avengers Endgame",c:"movie",img:"https://image.tmdb.org/t/p/w300/or06FN3Dka5tukK1e9sl16pB3iy.jpg",id:"tt4154796"},
+{t:"Joker",c:"movie",img:"https://image.tmdb.org/t/p/w300/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg",id:"tt7286456"},
+{t:"KGF Chapter 2",c:"hindi",img:"https://image.tmdb.org/t/p/w300/ltHlJwvxKv7d0ooCiKSAvfwV9tX.jpg",id:"tt10698680"},
+{t:"RRR",c:"hindi",img:"https://image.tmdb.org/t/p/w300/luoKpgVwi1E5nQsi7W0UuKHu2Rq.jpg",id:"tt8178634"},
+{t:"Money Heist",c:"series",img:"https://image.tmdb.org/t/p/w300/reEMJA1uzscCbkpeRJeTT2bjqUp.jpg",id:"tt6468322"},
+{t:"Breaking Bad",c:"series",img:"https://image.tmdb.org/t/p/w300/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",id:"tt0903747"},
+{t:"Demon Slayer",c:"anime",img:"https://image.tmdb.org/t/p/w300/xUfRZu2mi8jH6SzQEJGP6tjBuYj.jpg",id:"tt9335498"},
+{t:"Attack on Titan",c:"anime",img:"https://image.tmdb.org/t/p/w300/hTP1DtLGFamjfu8WqjnuQdP1n4i.jpg",id:"tt2560140"}
 ];
 
-// 🔥 EXPAND TO 1000+
+// 🔥 EXPAND DATA (1000+)
 let db=[];
 for(let i=0;i<150;i++){
  base.forEach(m=>{
@@ -72,43 +102,68 @@ for(let i=0;i<150;i++){
  });
 }
 
+// STATE
 let current="all";
+let start=0;
+const limit=20;
 
 // 🎬 RENDER
-function render(){
+function render(reset=false){
  const box=document.getElementById("grid");
  const search=document.getElementById("search").value.toLowerCase();
 
- box.innerHTML="";
+ if(reset){
+  box.innerHTML="";
+  start=0;
+ }
 
- db.forEach(m=>{
-  if(current!="all" && m.c!=current) return;
-  if(!m.t.toLowerCase().includes(search)) return;
+ let filtered = db.filter(m=>{
+  return (current=="all" || m.c==current) &&
+         m.t.toLowerCase().includes(search);
+ });
 
+ let slice;
+
+ if(search){
+  slice = filtered; // 🔍 ALL results
+ } else {
+  slice = filtered.slice(start,start+limit); // 🏠 limited
+ }
+
+ slice.forEach(m=>{
   const link=`https://vidsrc.to/embed/movie/${m.id}`;
 
   box.innerHTML+=`
   <div class="card">
-    <img src="${m.img}">
+    <img src="${m.img}" loading="lazy">
     <div class="title">${m.t}</div>
     <a href="${link}" target="_blank" class="btn">Watch</a>
     <a href="${link}" target="_blank" class="btn">Download</a>
   </div>`;
  });
+
+ if(!search) start+=limit;
 }
 
 // 🔘 CATEGORY
-function setCat(c){
+function setCat(c,btn){
  current=c;
- document.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
- event.target.classList.add("active");
- render();
+ document.querySelectorAll(".cats button").forEach(b=>b.classList.remove("active"));
+ btn.classList.add("active");
+ render(true);
 }
 
 // 🔍 SEARCH
-document.getElementById("search").addEventListener("input",render);
+document.getElementById("search").addEventListener("input",()=>{
+ render(true);
+});
 
-// LOAD
+// ➕ LOAD MORE
+function loadMore(){
+ render();
+}
+
+// LOAD FIRST
 render();
 
 </script>
