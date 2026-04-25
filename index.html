@@ -8,21 +8,35 @@
 <style>
 body{margin:0;font-family:sans-serif;background:#000;color:#fff}
 .header{padding:15px;font-size:22px;color:#00ff88;font-weight:bold}
-.search{width:90%;margin:10px auto;display:block;padding:12px;border:none;border-radius:10px;background:#111;color:#fff}
 
-.tabs{display:flex;gap:10px;padding:10px;overflow:auto}
-.tab{padding:8px 15px;background:#111;border-radius:20px;cursor:pointer}
-.tab.active{background:#00ff88;color:#000}
+.search{width:90%;margin:10px auto;display:block;padding:10px;background:#111;border:none;color:#fff}
 
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
+
 .card{background:#111;border-radius:10px;overflow:hidden}
-.card img{width:100%;height:230px;object-fit:cover}
-.title{padding:8px;font-size:14px}
+.card img{width:100%;height:200px;object-fit:cover}
+.title{padding:5px}
 
-.btns{display:flex;flex-direction:column;gap:5px;padding:8px}
-.btn{background:#00ff88;color:#000;padding:8px;text-align:center;border-radius:6px;border:none}
+.btn{background:#00ff88;color:#000;padding:6px;margin:5px;border:none;border-radius:5px;cursor:pointer}
 
-.load{margin:20px;padding:12px;background:#00ff88;text-align:center;border-radius:10px;color:#000;cursor:pointer}
+/* ADMIN */
+.admin{
+position:fixed;
+bottom:0;
+width:100%;
+background:#111;
+padding:10px;
+display:flex;
+flex-direction:column;
+gap:5px;
+}
+
+.admin input{
+padding:8px;
+background:#222;
+border:none;
+color:#fff;
+}
 </style>
 </head>
 
@@ -30,120 +44,105 @@ body{margin:0;font-family:sans-serif;background:#000;color:#fff}
 
 <div class="header">H.MOVIES PRO</div>
 
-<input class="search" id="search" placeholder="Search movies...">
+<input id="search" class="search" placeholder="Search...">
 
-<div class="tabs">
-  <div class="tab active" onclick="setCat('all',this)">All</div>
-  <div class="tab" onclick="setCat('series',this)">Series</div>
+<div id="grid" class="grid"></div>
+
+<!-- ADMIN PANEL -->
+<div class="admin">
+<input id="title" placeholder="Movie Title">
+<input id="poster" placeholder="Poster URL">
+<input id="link1" placeholder="Server 1 Link">
+<input id="link2" placeholder="Server 2 Link">
+<button class="btn" onclick="addMovie()">➕ Add Movie</button>
 </div>
-
-<div class="grid" id="grid"></div>
-
-<div class="load" onclick="loadMore()">Load More</div>
 
 <script>
 
-// 🎬 DATA (your direct link added)
-const data = [
-{
-  t:"The Boys Season 1",
-  c:"series",
-  img:"https://image.tmdb.org/t/p/w500/stTEycfG9928HYGEISBFaG1ngjM.jpg",
-  link:"https://v.inmoviebox.com/O3N6JBYuzD9"
-},
-{
-  t:"Breaking Bad",
-  c:"series",
-  img:"https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg"
-}
-];
+// 🎬 DATABASE (localStorage)
+let data = JSON.parse(localStorage.getItem("movies")) || [];
 
-let shown = 0;
-let cat = "all";
-
-// 🎬 SHOW
+// SHOW
 function show(){
-  const grid = document.getElementById("grid");
-  const search = document.getElementById("search").value.toLowerCase();
+ const grid=document.getElementById("grid");
+ const s=document.getElementById("search").value.toLowerCase();
 
-  let filtered = data.filter(x =>
-    (cat==="all" || x.c===cat) &&
-    x.t.toLowerCase().includes(search)
-  );
+ let filtered=data.filter(m=>m.t.toLowerCase().includes(s));
 
-  const slice = filtered.slice(0, shown);
+ grid.innerHTML=filtered.map(m=>`
+ <div class="card">
+   <img src="${m.img}" onerror="this.src='https://via.placeholder.com/300x400'">
+   <div class="title">${m.t}</div>
 
-  grid.innerHTML = slice.map(m => `
-    <div class="card">
-
-      <img src="${m.img}" 
-      onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-
-      <div class="title">${m.t}</div>
-
-      <div class="btns">
-
-        <button class="btn" onclick='watchMovie(${JSON.stringify(m)})'>
-        ▶ Watch
-        </button>
-
-      </div>
-    </div>
-  `).join("");
+   <button class="btn" onclick='openServers(${JSON.stringify(m)})'>
+   ▶ Watch
+   </button>
+ </div>
+ `).join("");
 }
 
-// 🎬 WATCH FUNCTION (SMART)
-function watchMovie(movie){
+// ➕ ADD MOVIE
+function addMovie(){
+ const t=document.getElementById("title").value;
+ const img=document.getElementById("poster").value;
+ const l1=document.getElementById("link1").value;
+ const l2=document.getElementById("link2").value;
 
-  if(movie.link){
-    // 🔥 direct player
-    const player = document.createElement("div");
-    player.innerHTML = `
-      <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:9999;">
-        
-        <button onclick="this.parentElement.remove()" 
-          style="position:absolute;top:10px;right:10px;padding:10px;background:red;color:white;border:none;">
-          ✖ Close
-        </button>
+ if(!t || !img) return alert("Fill all");
 
-        <iframe src="${movie.link}" width="100%" height="100%" allowfullscreen></iframe>
+ data.push({t,img,l1,l2});
 
-      </div>
-    `;
-    document.body.appendChild(player);
+ localStorage.setItem("movies",JSON.stringify(data));
 
-  } else {
-    // fallback (always work)
-    window.open(`https://www.google.com/search?q=${movie.t}+watch`, '_blank');
-  }
-
+ show();
 }
 
-// LOAD MORE
-function loadMore(){
-  shown += 10;
-  show();
+// 🎬 OPEN SERVER SELECT
+function openServers(m){
+
+ const box=document.createElement("div");
+
+ box.innerHTML=`
+ <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:9999;text-align:center;padding-top:50px;">
+
+ <h2>${m.t}</h2>
+
+ <button class="btn" onclick="play('${m.l1}')">Server 1</button>
+ <button class="btn" onclick="play('${m.l2}')">Server 2</button>
+
+ <br><br>
+ <button class="btn" onclick="this.parentElement.remove()">Close</button>
+
+ </div>
+ `;
+
+ document.body.appendChild(box);
 }
 
-// CATEGORY
-function setCat(c,el){
-  cat = c;
-  shown = 10;
+// ▶ PLAY
+function play(link){
+ const player=document.createElement("div");
 
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  el.classList.add("active");
+ player.innerHTML=`
+ <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:10000;">
+ 
+ <button onclick="this.parentElement.remove()" 
+ style="position:absolute;top:10px;right:10px;background:red;color:#fff;border:none;padding:10px;">
+ X
+ </button>
 
-  show();
+ <iframe src="${link}" width="100%" height="100%" allowfullscreen></iframe>
+
+ </div>
+ `;
+
+ document.body.appendChild(player);
 }
 
 // SEARCH
-document.getElementById("search").addEventListener("input",()=>{
-  shown = 10;
-  show();
-});
+document.getElementById("search").addEventListener("input",show);
 
 // FIRST LOAD
-shown = 10;
 show();
 
 </script>
