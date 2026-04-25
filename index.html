@@ -1,41 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - Official</title>
-    <style>
-        body { margin:0; font-family:sans-serif; background:#080808; color:white; padding-bottom:80px; }
-        .nav { padding:15px; background:#141414; position:sticky; top:0; z-index:100; text-align:center; border-bottom:1px solid #333; }
-        .logo { color:#e50914; font-weight:bold; font-size:26px; margin-bottom:10px; }
-        .search { background:#2a2d36; border:none; padding:12px; border-radius:8px; color:white; width:85%; outline:none; }
-        .row { display:flex; flex-wrap:wrap; padding:10px; gap:10px; justify-content:space-around; }
-        .card { width:45%; background:#141414; border-radius:10px; margin-bottom:15px; overflow:hidden; border:1px solid #222; text-align:center; }
-        .card img { width:100%; height:230px; object-fit:cover; display:block; background:#222; }
-        .title { font-size:12px; padding:8px 5px; height:35px; overflow:hidden; font-weight:bold; }
-        .btn { display:block; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; color:white; margin:5px 5px 10px 5px; font-size:11px; text-align:center; }
-        .watch { background:#e50914; }
-        .down { background:#333; border:1px solid #444; }
-    </style>
-</head>
-<body>
-    <div class="nav">
-        <div class="logo">H.Movies</div>
-        <input type="text" id="s" class="search" placeholder="Search movies (e.g. Batman)...">
-    </div>
-    <div id="out" class="row"></div>
     <script>
-        const k = '86202476b76a0841f22e848981329124'; // Is key ko maine verify kiya hai
+        const k = '86202476b76a0841f22e848981329124';
         function load(path, isS = false) {
             const box = document.getElementById('out');
-            box.innerHTML = '<p style="padding:20px;">Updating List...</p>';
+            box.innerHTML = '<p style="padding:20px;">Loading Movies...</p>';
+            
+            // Fixed URL Logic for Home & Search
             let url = isS 
                 ? "https://api.themoviedb.org/3/search/movie?api_key=" + k + "&query=" + encodeURIComponent(path)
-                : "https://api.themoviedb.org/3/movie/popular?api_key=" + k;
+                : "https://api.themoviedb.org/3/discover/movie?api_key=" + k + "&sort_by=popularity.desc";
+
             fetch(url).then(r => r.json()).then(data => {
                 box.innerHTML = '';
                 if(!data.results || data.results.length === 0) {
-                    box.innerHTML = '<p style="padding:20px;">Server Busy. Please Search a movie name.</p>';
+                    box.innerHTML = '<p style="padding:20px;">No results. Try searching another movie.</p>';
                     return;
                 }
                 data.results.forEach(m => {
@@ -43,13 +20,21 @@
                         const img = "https://image.tmdb.org/t/p/w500" + m.poster_path;
                         const s1 = "https://vidsrc.to/embed/movie/" + m.id;
                         const d1 = "https://vidsrc.xyz/movie/" + m.id;
-                        box.innerHTML += '<div class="card"><img src="' + img + '"><div class="title">' + m.title + '</div><a href="' + s1 + '" target="_blank" class="btn watch">Watch Now</a><a href="' + d1 + '" target="_blank" class="btn down">Download</a></div>';
+                        box.innerHTML += '<div class="card">' +
+                                '<img src="' + img + '">' +
+                                '<div class="title">' + m.title + '</div>' +
+                                '<a href="' + s1 + '" target="_blank" class="btn watch">Watch Now</a>' +
+                                '<a href="' + d1 + '" target="_blank" class="btn down">Download HD</a>' +
+                            '</div>';
                     }
                 });
-            }).catch(e => { box.innerHTML = '<p>Error connecting to Database.</p>'; });
+            }).catch(e => { 
+                box.innerHTML = '<p style="padding:20px;">Connection Error! Check internet.</p>'; 
+            });
         }
-        document.getElementById('s').onkeypress = (e) => { if(e.key === 'Enter') load(e.target.value, true); };
-        load('popular');
+        document.getElementById('s').onkeypress = (e) => { 
+            if(e.key === 'Enter') load(e.target.value.trim(), true); 
+        };
+        // Auto-load popular movies on start
+        load('', false);
     </script>
-</body>
-</html>
