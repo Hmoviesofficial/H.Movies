@@ -1,148 +1,145 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>H.Movies Pro</title>
 
 <style>
-body{
-margin:0;
-background:#0b0b0f;
-color:#fff;
-font-family:sans-serif;
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0f0f0f;
+  color: white;
 }
 
 /* HEADER */
-.header{
-display:flex;
-justify-content:space-between;
-padding:15px;
-background:#111;
-position:sticky;
-top:0;
-z-index:100;
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: #141414;
 }
 
-.logo{
-color:#00ff88;
-font-size:22px;
-font-weight:bold;
+.logo {
+  color: #00ff88;
+  font-size: 20px;
+  font-weight: bold;
 }
 
-.search{
-background:#1c1c25;
-border:none;
-padding:10px;
-color:#fff;
-border-radius:8px;
+input {
+  background: #1c1c1c;
+  border: none;
+  padding: 8px;
+  color: white;
+  border-radius: 5px;
 }
 
-/* BANNER */
-.banner{
-height:65vh;
-background-size:cover;
-background-position:center;
-display:flex;
-align-items:flex-end;
-padding:20px;
-position:relative;
+/* SLIDER */
+.slider {
+  overflow-x: auto;
+  display: flex;
+  gap: 10px;
+  padding: 10px;
 }
 
-.banner h1{
-font-size:32px;
-text-shadow:0 0 10px #000;
+.slide {
+  min-width: 85%;
+  position: relative;
 }
 
-.banner button{
-background:#00ff88;
-border:none;
-padding:10px 20px;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
+.slide img {
+  width: 100%;
+  border-radius: 10px;
 }
 
-/* ARROWS */
-.arrow{
-position:absolute;
-top:50%;
-font-size:30px;
-cursor:pointer;
-color:#fff;
-background:rgba(0,0,0,0.4);
-padding:10px;
-border-radius:50%;
+.slide h2 {
+  position: absolute;
+  bottom: 20px;
+  left: 15px;
 }
 
-.left{left:10px;}
-.right{right:10px;}
-
-/* ROWS */
-.row{
-padding:10px;
+/* TRENDING */
+.section {
+  padding: 10px;
 }
 
-.row h2{
-margin-left:10px;
-color:#00ff88;
+.movies {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
 }
 
-/* MOVIES */
-.movies{
-display:flex;
-overflow-x:auto;
-gap:12px;
-padding:10px;
+.movie-card {
+  min-width: 140px;
+  background: #1a1a1a;
+  border-radius: 10px;
+  padding: 5px;
 }
 
-.card{
-min-width:150px;
-transition:0.3s;
+.movie-card img {
+  width: 100%;
+  border-radius: 10px;
 }
 
-.card img{
-width:100%;
-border-radius:10px;
+/* POPUP */
+#optionsBox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
 }
 
-.card:hover{
-transform:scale(1.1);
+.options-content {
+  background: #111;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  text-align: center;
+}
+
+.options-content button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 5px;
+  background: linear-gradient(45deg, #00ff88, #00ccff);
+}
+
+.options-content span {
+  position: absolute;
+  right: 20px;
+  top: 10px;
+  cursor: pointer;
 }
 
 /* PLAYER */
-.player{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:#000;
-z-index:9999;
+#player {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  display: none;
 }
 
-.player iframe{
-width:100%;
-height:100%;
+#player iframe {
+  width: 100%;
+  height: 100%;
 }
 
-.close{
-position:absolute;
-top:10px;
-right:10px;
-background:red;
-color:#fff;
-border:none;
-padding:10px;
-}
-
-/* SCROLL BAR */
-::-webkit-scrollbar{
-height:6px;
-}
-::-webkit-scrollbar-thumb{
-background:#00ff88;
-border-radius:10px;
+#player span {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  color: white;
+  font-size: 25px;
 }
 </style>
 </head>
@@ -150,152 +147,121 @@ border-radius:10px;
 <body>
 
 <div class="header">
-<div class="logo">H.MOVIES PRO</div>
-<input id="search" class="search" placeholder="Search movies...">
+  <div class="logo">H.MOVIES PRO</div>
+  <input type="text" placeholder="Search..." onkeyup="searchMovie(this.value)">
 </div>
 
-<div id="banner" class="banner"></div>
+<!-- SLIDER -->
+<div class="slider" id="slider"></div>
 
-<div class="row">
-<h2>🔥 Trending</h2>
-<div id="trending" class="movies"></div>
+<!-- TRENDING -->
+<div class="section">
+  <h2>🔥 Trending</h2>
+  <div class="movies" id="movies"></div>
 </div>
 
-<div class="row">
-<h2>🎬 Movies</h2>
-<div id="movies" class="movies"></div>
+<!-- OPTIONS -->
+<div id="optionsBox">
+  <div class="options-content">
+    <span onclick="closeOptions()">✖</span>
+    <h2 id="movieTitle"></h2>
+    <button onclick="watchTrailer()">▶ Watch Trailer</button>
+    <button onclick="findMovie()">🔍 Find Movie</button>
+  </div>
 </div>
 
-<div class="row">
-<h2>📺 Series</h2>
-<div id="series" class="movies"></div>
+<!-- PLAYER -->
+<div id="player">
+  <span onclick="closePlayer()">✖</span>
+  <iframe id="videoFrame"></iframe>
 </div>
 
 <script>
+const API_KEY = "YOUR_API_KEY";
 
-const API="https://api.themoviedb.org/3";
-const KEY="f409489a42d61f514484fa959f76fec7";
+let currentMovie = "";
 
-/* FETCH */
-async function get(url){
- let res=await fetch(url);
- return res.json();
-}
+/* FETCH MOVIES */
+async function loadMovies() {
+  let res = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}`);
+  let data = await res.json();
 
-/* BANNER SLIDER */
-let bannerMovies=[];
-let current=0;
+  let slider = document.getElementById("slider");
+  let movies = document.getElementById("movies");
 
-async function loadBanner(){
- let data=await get(`${API}/trending/movie/week?api_key=${KEY}`);
- bannerMovies=data.results.slice(0,5);
- showBanner();
-}
+  data.results.forEach((m, i) => {
 
-function showBanner(){
- let m=bannerMovies[current];
- let banner=document.getElementById("banner");
+    // SLIDER (first 5)
+    if (i < 5) {
+      slider.innerHTML += `
+      <div class="slide" onclick="openOptions('${m.title}')">
+        <img src="https://image.tmdb.org/t/p/w500${m.backdrop_path}">
+        <h2>${m.title}</h2>
+      </div>`;
+    }
 
- banner.style.backgroundImage=
- `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
-
- banner.innerHTML=`
- <div>
- <h1>${m.title}</h1>
- <button onclick="play('${m.title} trailer')">▶ Play</button>
- </div>
-
- <div class="arrow left" onclick="prev()">⬅</div>
- <div class="arrow right" onclick="next()">➡</div>
- `;
-}
-
-function next(){
- current=(current+1)%bannerMovies.length;
- showBanner();
-}
-
-function prev(){
- current=(current-1+bannerMovies.length)%bannerMovies.length;
- showBanner();
-}
-
-/* AUTO SLIDE */
-setInterval(()=>next(),5000);
-
-/* LOAD ROW */
-async function loadRow(url,id){
- let data=await get(url);
- let box=document.getElementById(id);
-
- data.results.forEach(m=>{
-  if(!m.poster_path) return;
-
-  let title=m.title||m.name;
-
-  let div=document.createElement("div");
-  div.className="card";
-
-  div.innerHTML=`
-  <img src="https://image.tmdb.org/t/p/w300${m.poster_path}">
-  `;
-
-  div.onclick=()=>play(title+" trailer");
-
-  box.appendChild(div);
- });
-}
-
-/* PLAYER */
-function play(q){
- let p=document.createElement("div");
- p.className="player";
-
- p.innerHTML=`
- <button class="close" onclick="this.parentElement.remove()">X</button>
-
- <iframe 
- src="https://www.youtube.com/embed?listType=search&list=${q}" 
- allowfullscreen>
- </iframe>
- `;
-
- document.body.appendChild(p);
+    // TRENDING LIST
+    movies.innerHTML += `
+    <div class="movie-card" onclick="openOptions('${m.title}')">
+      <img src="https://image.tmdb.org/t/p/w500${m.poster_path}">
+      <p>${m.title}</p>
+    </div>`;
+  });
 }
 
 /* SEARCH */
-document.getElementById("search").addEventListener("input", async e=>{
- let q=e.target.value;
- if(q.length<2) return;
+async function searchMovie(q) {
+  if (q.length < 3) return;
 
- let data=await get(`${API}/search/multi?api_key=${KEY}&query=${q}`);
+  let res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${q}`);
+  let data = await res.json();
 
- document.getElementById("trending").innerHTML="";
- document.getElementById("movies").innerHTML="";
- document.getElementById("series").innerHTML="";
+  let movies = document.getElementById("movies");
+  movies.innerHTML = "";
 
- data.results.forEach(m=>{
-  if(!m.poster_path) return;
+  data.results.forEach(m => {
+    movies.innerHTML += `
+    <div class="movie-card" onclick="openOptions('${m.title}')">
+      <img src="https://image.tmdb.org/t/p/w500${m.poster_path}">
+      <p>${m.title}</p>
+    </div>`;
+  });
+}
 
-  let title=m.title||m.name;
+/* OPTIONS */
+function openOptions(title) {
+  currentMovie = title;
+  document.getElementById("movieTitle").innerText = title;
+  document.getElementById("optionsBox").style.display = "flex";
+}
 
-  let div=document.createElement("div");
-  div.className="card";
+function closeOptions() {
+  document.getElementById("optionsBox").style.display = "none";
+}
 
-  div.innerHTML=`<img src="https://image.tmdb.org/t/p/w300${m.poster_path}">`;
+/* TRAILER */
+function watchTrailer() {
+  window.open("https://www.youtube.com/results?search_query=" + currentMovie + " trailer");
+}
 
-  div.onclick=()=>play(title+" trailer");
+/* FIND MOVIE */
+function findMovie() {
+  window.open("https://www.google.com/search?q=" + currentMovie + " watch online");
+}
 
-  document.getElementById("movies").appendChild(div);
- });
-});
+/* PLAYER */
+function playMovie(link) {
+  document.getElementById("player").style.display = "block";
+  document.getElementById("videoFrame").src = link;
+}
+
+function closePlayer() {
+  document.getElementById("player").style.display = "none";
+  document.getElementById("videoFrame").src = "";
+}
 
 /* INIT */
-loadBanner();
-loadRow(`${API}/trending/all/week?api_key=${KEY}`,"trending");
-loadRow(`${API}/discover/movie?api_key=${KEY}`,"movies");
-loadRow(`${API}/discover/tv?api_key=${KEY}`,"series");
-
+loadMovies();
 </script>
 
 </body>
