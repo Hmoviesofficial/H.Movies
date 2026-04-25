@@ -19,51 +19,60 @@
 <body>
     <div class="nav">
         <div class="logo">H.Movies</div>
-        <input type="text" id="s" class="search" placeholder="Type movie name & hit Enter...">
+        <input type="text" id="s" class="search" placeholder="Search (e.g. Spiderman) & Enter...">
     </div>
     <div id="out" class="row"></div>
 
     <script>
-        // Maine yahan 2nd backup key daal di hai
-        var k = 'c28a8d795f5109b83b9c05423858c42b'; 
+        // Multiple Backup Keys
+        var keys = ['c28a8d795f5109b83b9c05423858c42b', '86202476b76a0841f22e848981329124'];
         
         function load(q) {
             var box = document.getElementById('out');
-            box.innerHTML = '<p style="padding:20px;">Searching Database...</p>';
+            box.innerHTML = '<p style="padding:20px;">Connecting to Database...</p>';
             
-            // Discover or Search URL
-            var url = q 
-                ? "https://api.themoviedb.org/3/search/movie?api_key=" + k + "&query=" + encodeURIComponent(q)
-                : "https://api.themoviedb.org/3/trending/movie/day?api_key=" + k;
-            
-            fetch(url).then(function(res) { return res.json(); }).then(function(data) {
-                box.innerHTML = '';
-                if(!data.results || data.results.length === 0) {
-                    box.innerHTML = '<p style="padding:20px;">Movie not found. Try searching another name like "Avatar" or "Avengers".</p>';
-                    return;
+            // Try with first key, then second if it fails
+            fetchMovies(q, keys[0], function(success) {
+                if(!success) {
+                    fetchMovies(q, keys[1], function(finalSuccess) {
+                        if(!finalSuccess) box.innerHTML = '<p style="padding:20px;">Server Error. Please try VPN or Search manually.</p>';
+                    });
                 }
-                data.results.forEach(function(m) {
-                    if(m.poster_path) {
-                        var img = "https://image.tmdb.org/t/p/w500" + m.poster_path;
-                        var watch = "https://vidsrc.to/embed/movie/" + m.id;
-                        var item = document.createElement('div');
-                        item.className = 'card';
-                        item.innerHTML = '<img src="' + img + '"><div class="title">' + m.title + '</div><a href="' + watch + '" target="_blank" class="btn">Watch Now</a>';
-                        box.appendChild(item);
-                    }
-                });
+            });
+        }
+
+        function fetchMovies(q, apiKey, callback) {
+            var box = document.getElementById('out');
+            var url = q 
+                ? "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey + "&query=" + encodeURIComponent(q)
+                : "https://api.themoviedb.org/3/movie/popular?api_key=" + apiKey;
+
+            fetch(url).then(function(res) { return res.json(); }).then(function(data) {
+                if(data.results && data.results.length > 0) {
+                    box.innerHTML = '';
+                    data.results.forEach(function(m) {
+                        if(m.poster_path) {
+                            var img = "https://image.tmdb.org/t/p/w500" + m.poster_path;
+                            var watch = "https://vidsrc.to/embed/movie/" + m.id;
+                            var item = document.createElement('div');
+                            item.className = 'card';
+                            item.innerHTML = '<img src="' + img + '"><div class="title">' + m.title + '</div><a href="' + watch + '" target="_blank" class="btn">Watch Now</a>';
+                            box.appendChild(item);
+                        }
+                    });
+                    callback(true);
+                } else {
+                    callback(false);
+                }
             }).catch(function(e) {
-                box.innerHTML = '<p style="padding:20px;">Server Error. Please Refresh.</p>';
+                callback(false);
             });
         }
 
         document.getElementById('s').onkeypress = function(e) {
-            if(e.key === 'Enter') {
-                load(e.target.value.trim());
-            }
+            if(e.key === 'Enter') load(e.target.value.trim());
         };
         
-        // Initial load
         window.onload = function() { load(''); };
     </script>
 </body>
