@@ -9,13 +9,13 @@
         .top-nav { padding: 15px; background: #141414; position: sticky; top: 0; z-index: 1000; text-align: center; }
         .logo { color: #e50914; font-weight: bold; font-size: 28px; margin-bottom: 10px; }
         .search-box { background: #2a2d36; border: none; padding: 12px; border-radius: 8px; color: white; width: 90%; outline: none; margin-bottom: 10px; }
-        .category-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; justify-content: center; }
-        .cat-btn { background: #1a1a1a; padding: 8px 16px; border-radius: 4px; font-size: 13px; border: 1px solid #333; color: white; cursor: pointer; }
-        .movie-row { display: flex; flex-wrap: wrap; padding: 10px; gap: 10px; justify-content: center; }
-        .movie-card { width: 45%; background: #141414; border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
-        .movie-card img { width: 100%; height: 220px; object-fit: cover; }
-        .movie-title { font-size: 11px; padding: 8px; text-align: center; height: 30px; overflow: hidden; }
-        .btn { display: block; padding: 8px; border-radius: 4px; text-align: center; text-decoration: none; font-weight: bold; color: white; margin: 5px; font-size: 11px; }
+        .cat-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px; justify-content: center; }
+        .cat-btn { background: #1a1a1a; padding: 8px 15px; border-radius: 5px; border: 1px solid #333; color: white; font-size: 13px; cursor: pointer; }
+        .movie-row { display: flex; flex-wrap: wrap; padding: 10px; gap: 10px; justify-content: space-around; }
+        .movie-card { width: 45%; background: #141414; border-radius: 10px; margin-bottom: 15px; overflow: hidden; border: 1px solid #222; }
+        .movie-card img { width: 100%; height: 230px; object-fit: cover; }
+        .movie-title { font-size: 11px; padding: 8px; text-align: center; font-weight: bold; height: 35px; overflow: hidden; }
+        .btn { display: block; padding: 10px; border-radius: 5px; text-align: center; text-decoration: none; font-weight: bold; color: white; margin: 5px; font-size: 11px; }
         .watch { background: #e50914; }
         .down { background: #333; }
     </style>
@@ -24,39 +24,37 @@
 
 <div class="top-nav">
     <div class="logo">H.Movies</div>
-    <input type="text" id="searchInput" class="search-box" placeholder="Search Movie...">
-    <div class="category-bar">
-        <div class="cat-btn" onclick="fetchMovies('movie/popular')">Popular</div>
-        <div class="cat-btn" onclick="fetchMovies('movie/top_rated')">Top Rated</div>
-        <div class="cat-btn" onclick="fetchMovies('trending/movie/week')">Trending</div>
+    <input type="text" id="searchInput" class="search-box" placeholder="Search like MovieBox...">
+    <div class="cat-bar">
+        <button class="cat-btn" onclick="getMovies('movie/popular')">Popular</button>
+        <button class="cat-btn" onclick="getMovies('trending/movie/week')">Trending</button>
     </div>
 </div>
 
-<div id="movie-display" class="movie-row"></div>
+<div id="display" class="movie-row"></div>
 
 <script>
-    // Stable API Key
-    const k = '86202476b76a0841f22e848981329124'; 
+    const api_key = '86202476b76a0841f22e848981329124';
 
-    function fetchMovies(path, search = false) {
-        const display = document.getElementById('movie-display');
-        display.innerHTML = '<p>Loading...</p>';
+    function getMovies(path, isSearch = false) {
+        const box = document.getElementById('display');
+        box.innerHTML = '<p style="padding:20px">Loading...</p>';
         
-        let url = search 
-            ? `https://api.themoviedb.org/3/search/movie?api_key=${k}&query=${path}`
-            : `https://api.themoviedb.org/3/${path}?api_key=${k}`;
+        let url = isSearch 
+            ? `https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${path}`
+            : `https://api.themoviedb.org/3/${path}?api_key=${api_key}`;
 
         fetch(url)
         .then(res => res.json())
         .then(data => {
-            display.innerHTML = '';
+            box.innerHTML = '';
             data.results.forEach(m => {
                 if(m.poster_path) {
                     const img = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
                     const s1 = `https://vidsrc.me/embed/movie/${m.id}`;
                     const s2 = `https://vidsrc.xyz/embed/movie/${m.id}`;
-
-                    display.innerHTML += `
+                    
+                    box.innerHTML += `
                         <div class="movie-card">
                             <img src="${img}">
                             <div class="movie-title">${m.title}</div>
@@ -66,14 +64,14 @@
                         </div>`;
                 }
             });
-        }).catch(() => { display.innerHTML = '<p>Internet Slow? Try again.</p>'; });
+        }).catch(err => { box.innerHTML = '<p>Error! Refresh Page.</p>'; });
     }
 
     document.getElementById('searchInput').addEventListener('keypress', (e) => {
-        if(e.key === 'Enter') fetchMovies(e.target.value, true);
+        if(e.key === 'Enter') getMovies(e.target.value, true);
     });
 
-    fetchMovies('movie/popular');
+    getMovies('movie/popular');
 </script>
 </body>
 </html>
