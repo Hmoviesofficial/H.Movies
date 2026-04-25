@@ -3,33 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies Pro</title>
+    <title>H.Movies - Global Cinema</title>
     <style>
         body { margin:0; font-family: sans-serif; background:#000; color:#fff; text-align:center; }
-        .nav { padding:15px; background:#111; border-bottom:3px solid #2ecc71; }
-        .logo { color:#2ecc71; font-size:24px; font-weight:bold; }
-        .search { width:85%; padding:12px; margin-top:10px; border-radius:5px; border:none; background:#222; color:#fff; outline:none; }
-        .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px; padding:15px; }
-        .card { background:#111; border-radius:10px; border:1px solid #333; overflow:hidden; }
-        .card img { width:100%; height:190px; object-fit:cover; display:block; }
+        .nav { padding:15px; background:#111; border-bottom:3px solid #2ecc71; position:sticky; top:0; z-index:100; }
+        .logo { color:#2ecc71; font-size:24px; font-weight:bold; margin-bottom:10px; }
+        .search { width:90%; padding:12px; border-radius:8px; border:none; background:#222; color:#fff; outline:none; font-size:16px; }
+        .cats { display:flex; overflow-x:auto; padding:10px; gap:10px; justify-content:center; }
+        .c-btn { background:#1a1a1a; padding:8px 15px; border-radius:5px; border:1px solid #333; cursor:pointer; color:#fff; font-size:12px; white-space:nowrap; }
+        .c-btn.active { background:#2ecc71; color:#000; font-weight:bold; }
+        .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; padding:15px; }
+        .card { background:#111; border-radius:10px; border:1px solid #222; overflow:hidden; transition: 0.3s; cursor:pointer; }
+        .card:hover { border-color:#2ecc71; transform: scale(1.03); }
+        .card img { width:100%; height:200px; object-fit:cover; display:block; background:#1a1a1a; }
+        .info { padding:8px; }
+        .title { font-size:11px; font-weight:bold; height:30px; overflow:hidden; margin-bottom:5px; }
+        .btn-box { display:flex; gap:5px; }
+        .play-btn { flex:1; background:#2ecc71; color:#000; font-size:10px; padding:5px; text-decoration:none; border-radius:3px; font-weight:bold; }
     </style>
 </head>
 <body>
     <div class="nav">
         <div class="logo">H.MOVIES PRO</div>
-        <input type="text" id="s" class="search" placeholder="Enter Movie Name...">
+        <input type="text" id="s" class="search" placeholder="Search Movie or Season Name...">
+        <div class="cats">
+            <div class="c-btn active" onclick="load('2025', this)">Trending</div>
+            <div class="c-btn" onclick="load('Animation', this)">Animated</div>
+            <div class="c-btn" onclick="load('Series', this)">Seasons</div>
+            <div class="c-btn" onclick="load('Bollywood', this)">Bollywood</div>
+            <div class="c-btn" onclick="load('Marvel', this)">Marvel</div>
+        </div>
     </div>
-    <div id="out" class="grid">Enter movie name and wait...</div>
+    <div id="out" class="grid">Loading Movies...</div>
 
     <script>
-        async function load(q) {
+        const API_KEY = '61f2249e';
+
+        async function load(q, btn) {
             const box = document.getElementById('out');
-            box.innerHTML = 'Fetching Data Directly...';
-            
-            // Direct API call without complex proxies
-            const url = `https://www.omdbapi.com/?s=${encodeURIComponent(q)}&apikey=61f2249e`;
+            if(btn) {
+                document.querySelectorAll('.c-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            box.innerHTML = 'Syncing Posters...';
 
             try {
+                // Fetching movies from 2010 to 2026
+                const url = `https://www.omdbapi.com/?s=${encodeURIComponent(q)}&apikey=${API_KEY}`;
                 const res = await fetch(url);
                 const data = await res.json();
 
@@ -37,21 +57,37 @@
                 if(data.Search) {
                     data.Search.forEach(m => {
                         if(m.Poster !== 'N/A') {
-                            // Image ko load karne ka sabse asan tarika
-                            const safeImg = "https://images.weserv.nl/?url=" + encodeURIComponent(m.Poster);
+                            const proxyImg = "https://images.weserv.nl/?url=" + encodeURIComponent(m.Poster);
+                            const watchLink = m.Type === 'series' 
+                                ? `https://vidsrc.to/embed/tv/${m.imdbID}` 
+                                : `https://vidsrc.to/embed/movie/${m.imdbID}`;
+                            
                             const item = document.createElement('div');
                             item.className = 'card';
-                            item.innerHTML = `<img src="${safeImg}"><div style="font-size:11px;padding:8px;">${m.Title}</div>`;
+                            item.innerHTML = `
+                                <img src="${proxyImg}">
+                                <div class="info">
+                                    <div class="title">${m.Title}</div>
+                                    <div class="btn-box">
+                                        <a href="${watchLink}" target="_blank" class="play-btn">WATCH / DOWNLOAD</a>
+                                    </div>
+                                </div>
+                            `;
                             box.appendChild(item);
                         }
                     });
-                } else { box.innerHTML = "No Results. Try a different movie."; }
+                } else { box.innerHTML = "No Results. Try another name."; }
             } catch (e) {
-                box.innerHTML = "Network Blocked. Please try a different Internet/Sim.";
+                box.innerHTML = "Internet Error. Try again.";
             }
         }
 
-        document.getElementById('s').onkeypress = (e) => { if(e.key==='Enter') load(e.target.value); };
+        document.getElementById('s').onkeypress = (e) => { 
+            if(e.key==='Enter') load(e.target.value); 
+        };
+        
+        // Auto-load latest content
+        window.onload = () => load('2026');
     </script>
 </body>
 </html>
