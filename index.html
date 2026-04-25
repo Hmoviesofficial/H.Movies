@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies Pro - Global</title>
+    <title>H.Movies Pro</title>
     <style>
         body { margin:0; font-family: sans-serif; background:#000; color:#fff; text-align:center; }
-        .nav { padding:15px; background:#111; border-bottom:3px solid #2ecc71; position:sticky; top:0; }
-        .logo { color:#2ecc71; font-size:24px; font-weight:bold; margin-bottom:10px; }
-        .search { width:85%; padding:12px; border-radius:8px; border:none; background:#222; color:#fff; outline:none; }
+        .nav { padding:15px; background:#111; border-bottom:3px solid #2ecc71; }
+        .logo { color:#2ecc71; font-size:24px; font-weight:bold; }
+        .search { width:85%; padding:12px; margin-top:10px; border-radius:5px; border:none; background:#222; color:#fff; outline:none; }
         .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px; padding:15px; }
         .card { background:#111; border-radius:10px; border:1px solid #333; overflow:hidden; }
         .card img { width:100%; height:190px; object-fit:cover; display:block; }
@@ -17,29 +17,27 @@
 <body>
     <div class="nav">
         <div class="logo">H.MOVIES PRO</div>
-        <input type="text" id="s" class="search" placeholder="Type Movie & Press Enter...">
+        <input type="text" id="s" class="search" placeholder="Enter Movie Name...">
     </div>
-    <div id="out" class="grid">Searching Movies...</div>
+    <div id="out" class="grid">Enter movie name and wait...</div>
 
     <script>
         async function load(q) {
             const box = document.getElementById('out');
-            box.innerHTML = 'Connecting to Google Proxy...';
+            box.innerHTML = 'Fetching Data Directly...';
             
-            // Hum AllOrigins proxy use kar rahe hain jo block nahi hoti
-            const target = `https://www.omdbapi.com/?s=${encodeURIComponent(q)}&apikey=61f2249e`;
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`;
+            // Direct API call without complex proxies
+            const url = `https://www.omdbapi.com/?s=${encodeURIComponent(q)}&apikey=61f2249e`;
 
             try {
-                const res = await fetch(proxyUrl);
-                const json = await res.json();
-                const data = JSON.parse(json.contents);
+                const res = await fetch(url);
+                const data = await res.json();
 
                 box.innerHTML = '';
                 if(data.Search) {
                     data.Search.forEach(m => {
                         if(m.Poster !== 'N/A') {
-                            // Images ke liye bhi Google ki proxy use karenge
+                            // Image ko load karne ka sabse asan tarika
                             const safeImg = "https://images.weserv.nl/?url=" + encodeURIComponent(m.Poster);
                             const item = document.createElement('div');
                             item.className = 'card';
@@ -47,14 +45,13 @@
                             box.appendChild(item);
                         }
                     });
-                } else { box.innerHTML = "No Results. Try another movie name."; }
+                } else { box.innerHTML = "No Results. Try a different movie."; }
             } catch (e) {
-                box.innerHTML = "System Busy. Please refresh page.";
+                box.innerHTML = "Network Blocked. Please try a different Internet/Sim.";
             }
         }
 
         document.getElementById('s').onkeypress = (e) => { if(e.key==='Enter') load(e.target.value); };
-        window.onload = () => load('2025');
     </script>
 </body>
 </html>
