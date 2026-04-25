@@ -3,99 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.Movies - MovieBox Pro</title>
+    <title>H.Movies Pro - Global</title>
     <style>
-        body { margin:0; font-family: 'Segoe UI', Arial, sans-serif; background:#000; color:#fff; }
-        .header { padding:15px; background:#111; border-bottom:3px solid #2ecc71; position:sticky; top:0; z-index:1000; text-align:center; }
-        .logo { color:#2ecc71; font-size:26px; font-weight:bold; text-transform:uppercase; margin-bottom:10px; }
-        .search-bar { width:90%; max-width:500px; padding:12px; border-radius:10px; border:1px solid #333; background:#222; color:#fff; outline:none; }
-        .search-bar:focus { border-color:#2ecc71; }
-        
-        /* Category Bar */
-        .categories { display:flex; overflow-x:auto; padding:15px; gap:10px; white-space:nowrap; scrollbar-width:none; }
-        .cat-btn { background:#1a1a1a; padding:8px 18px; border-radius:5px; border:1px solid #333; color:#fff; cursor:pointer; font-size:13px; }
-        .cat-btn.active { background:#2ecc71; border-color:#2ecc71; color:#000; font-weight:bold; }
-
-        .container { display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:12px; padding:15px; }
-        .movie-card { background:#111; border-radius:8px; overflow:hidden; border:1px solid #222; position:relative; }
-        .movie-card img { width:100%; aspect-ratio: 2/3; object-fit:cover; display:block; background:#1a1a1a; }
-        .movie-title { padding:8px; font-size:11px; height:30px; overflow:hidden; text-align:center; color:#fff; font-weight:bold; }
-        #msg { text-align:center; padding:20px; color:#2ecc71; font-weight:bold; }
+        body { margin:0; font-family: sans-serif; background:#000; color:#fff; }
+        .nav { padding:15px; background:#111; border-bottom:3px solid #2ecc71; text-align:center; position:sticky; top:0; z-index:100; }
+        .logo { color:#2ecc71; font-size:24px; font-weight:bold; margin-bottom:10px; }
+        .search { width:85%; padding:12px; border-radius:5px; border:1px solid #333; background:#222; color:#fff; outline:none; }
+        .cats { display:flex; overflow-x:auto; padding:10px; gap:10px; justify-content:center; }
+        .c-btn { background:#1a1a1a; padding:8px 15px; border-radius:4px; border:1px solid #333; cursor:pointer; font-size:12px; }
+        .active { background:#2ecc71; color:#000; font-weight:bold; }
+        .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px; padding:15px; }
+        .card { background:#111; border-radius:8px; border:1px solid #222; overflow:hidden; }
+        .card img { width:100%; height:200px; object-fit:cover; display:block; background:#222; }
+        .t { padding:8px; font-size:11px; text-align:center; height:30px; overflow:hidden; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="logo">H.Movies Pro</div>
-        <input type="text" id="s" class="search-bar" placeholder="Search movies (e.g. Jawan, Joker)...">
+    <div class="nav">
+        <div class="logo">H.MOVIES PRO</div>
+        <input type="text" id="s" class="search" placeholder="Search Worldwide Movies...">
+        <div class="cats">
+            <div class="c-btn active" onclick="load('2026')">Trending</div>
+            <div class="c-btn" onclick="load('Action')">Action</div>
+            <div class="c-btn" onclick="load('Horror')">Horror</div>
+            <div class="c-btn" onclick="load('Bollywood')">Bollywood</div>
+        </div>
     </div>
-
-    <div class="categories">
-        <div class="cat-btn active" onclick="load('2026', this)">Trending</div>
-        <div class="cat-btn" onclick="load('Action', this)">Action</div>
-        <div class="cat-btn" onclick="load('Horror', this)">Horror</div>
-        <div class="cat-btn" onclick="load('Adventure', this)">Adventure</div>
-        <div class="cat-btn" onclick="load('Bollywood', this)">Bollywood</div>
-        <div class="cat-btn" onclick="load('Marvel', this)">Marvel</div>
-    </div>
-
-    <div id="msg"></div>
-    <div id="out" class="container"></div>
+    <div id="out" class="grid"></div>
 
     <script>
-        const API_KEY = '61f2249e';
-
-        async function load(q, btn) {
-            const grid = document.getElementById('out');
-            const msg = document.getElementById('msg');
+        function load(q) {
+            const box = document.getElementById('out');
+            box.innerHTML = 'Syncing...';
             
-            // UI Update
-            if(btn) {
-                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            }
-            
-            msg.innerText = 'Syncing Posters...';
-            grid.innerHTML = '';
-
-            try {
-                const res = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(q)}&apikey=${API_KEY}`);
-                const data = await res.json();
-
-                if (data.Search) {
-                    msg.innerText = '';
+            // Sabse stable API key aur images ke liye proxy
+            fetch("https://www.omdbapi.com/?s=" + encodeURIComponent(q) + "&apikey=61f2249e")
+            .then(res => res.json())
+            .then(data => {
+                box.innerHTML = '';
+                if(data.Search) {
                     data.Search.forEach(m => {
-                        if (m.Poster !== 'N/A') {
-                            // Enhanced Proxy to bypass ISP blocking
-                            const safeImg = `https://images.weserv.nl/?url=${encodeURIComponent(m.Poster)}&w=300&h=450`;
-                            
-                            const card = document.createElement('div');
-                            card.className = 'movie-card';
-                            card.innerHTML = `
-                                <img src="${safeImg}" alt="${m.Title}">
-                                <div class="movie-title">${m.Title}</div>
-                            `;
-                            // Redirect to watch page (we'll link this later)
-                            card.onclick = () => alert("Selected: " + m.Title);
-                            grid.appendChild(card);
+                        if(m.Poster !== 'N/A') {
+                            // Ye proxy images ko block hone se bachati hai
+                            const proxyImg = "https://images.weserv.nl/?url=" + encodeURIComponent(m.Poster);
+                            const item = document.createElement('div');
+                            item.className = 'card';
+                            item.innerHTML = `<img src="${proxyImg}"><div class="t">${m.Title}</div>`;
+                            box.appendChild(item);
                         }
                     });
-                } else {
-                    msg.innerText = 'No Results Found.';
-                }
-            } catch (e) {
-                msg.innerText = 'Connection Error. Try again.';
-            }
+                } else { box.innerHTML = "No Results. Try another spelling."; }
+            }).catch(e => { box.innerHTML = "Internet Blocked. Try VPN."; });
         }
-
-        document.getElementById('s').onkeypress = function(e) {
-            if(e.key === 'Enter') {
-                load(this.value.trim());
-                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            }
-        };
-
-        // Open hot and trending on entry
+        document.getElementById('s').onkeypress = (e) => { if(e.key==='Enter') load(e.target.value); };
         window.onload = () => load('2026');
     </script>
 </body>
