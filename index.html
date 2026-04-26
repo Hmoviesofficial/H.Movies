@@ -4,29 +4,98 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- AdSense Meta Verification -->
+  <!-- Adsense -->
   <meta name="google-adsense-account" content="ca-pub-5471522533142227">
-
-  <!-- AdSense Script -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5471522533142227"
-     crossorigin="anonymous"></script>
 
   <title>H.MOVIES PRO</title>
 
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: black;
+      color: white;
+    }
+
+    h1 {
+      padding: 10px;
+    }
+
+    .search {
+      margin: 10px;
+      padding: 10px;
+      width: 90%;
+      border-radius: 8px;
+      border: none;
+    }
+
+    .movies {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .movie {
+      background: #111;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .movie img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .movie p {
+      text-align: center;
+      padding: 5px;
+    }
+  </style>
 </head>
 
 <body>
 
-  <h1>H.MOVIES PRO</h1>
+<h1>H.MOVIES PRO</h1>
 
-  <input type="text" placeholder="Search movies..." id="searchBox">
+<input class="search" placeholder="Search movies...">
 
-  <h2>🔥 Trending</h2>
+<h2 style="padding-left:10px;">🔥 Trending</h2>
 
-  <div id="movies"></div>
+<div class="movies">
 
-  <script src="script.js"></script>
+  <div class="movie">
+    <img src="https://via.placeholder.com/300x200?text=Apex">
+    <p>Apex</p>
+  </div>
+
+  <div class="movie">
+    <img src="https://via.placeholder.com/300x200?text=Michael">
+    <p>Michael</p>
+  </div>
+
+  <div class="movie">
+    <img src="https://via.placeholder.com/300x200?text=Hail+Mary">
+    <p>Project Hail Mary</p>
+  </div>
+
+  <div class="movie">
+    <img src="https://via.placeholder.com/300x200?text=Mario">
+    <p>Mario Movie</p>
+  </div>
+
+</div>
+
+<!-- JS -->
+<script>
+  document.querySelectorAll('.movie').forEach(movie => {
+    movie.addEventListener('click', () => {
+      alert('Movie clicked');
+    });
+  });
+</script>
 
 </body>
 </html>
